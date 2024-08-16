@@ -35,5 +35,5 @@ repos:
         entry: mypy
         language: system
         types: [python]
-        args: [--config-file, backend/pyproject.toml]
+        args: [--config-file, pyproject.toml]
         require_serial: true
