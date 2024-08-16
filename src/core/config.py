@@ -69,7 +69,7 @@ class CoreSettings(BaseSettings):
 
 class Settings(BaseSettings):
     core: CoreSettings = Field(default_factory=CoreSettings)
-    postgres: PostgresSettings = Field(default_factory=PostgresSettings)
+    db: PostgresSettings = Field(default_factory=PostgresSettings)
 
     model_config = get_model_config()
 
