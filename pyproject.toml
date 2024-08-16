@@ -2,12 +2,37 @@
 name = "backend"
 version = "0.1.0"
 description = ""
-authors = ["Blackgolyb <andrejomelnickij@gmail.com>"]
+authors = [
+    "Blackgolyb <andrejomelnickij@gmail.com>",
+    "Whitegolyb <kirillulianow@gmail.com>",
+]
 readme = "README.md"
+packages = [{ include = "grapegram", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.6.0"
+mypy = "^1.11.1"
+sqlalchemy-stubs = "^0.4"
+pre-commit = "^3.8.0"
+
+[tool.mypy]
+plugins = ["pydantic.mypy", "sqlmypy"]
+disallow_untyped_defs = true
+
+[tool.ruff]
+extend-select = [
+    "I",  #isort
+    "UP", #pyupgrade
+    "F",  #pyflakes
+]
+
+[tool.ruff.extend-per-file-ignores]
+# Also ignore `F401` in all `__init__.py` files.
+"__init__.py" = ["F401"]
 
 [build-system]
 requires = ["poetry-core"]
