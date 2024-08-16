@@ -1,15 +1,9 @@
 import uvicorn
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api import api_router
 from src.core import get_settings
-
-api_router = APIRouter()
-
-
-@api_router.get("/")
-def hello() -> dict:
-    return {"message": "Hello, Grapegram!"}
 
 
 def configure_app() -> FastAPI:
