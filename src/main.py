@@ -2,6 +2,8 @@ import uvicorn
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.core import get_settings
+
 api_router = APIRouter()
 
 
@@ -11,10 +13,10 @@ def hello() -> dict:
 
 
 def configure_app() -> FastAPI:
+    setting = get_settings()
     app = FastAPI(
-        title="grapegram",
-        openapi_url="/docs/openapi.json",
-        debug=True,
+        title=setting.core.project_name,
+        debug=setting.core.debug,
     )
     app.add_middleware(
         CORSMiddleware,
@@ -23,16 +25,18 @@ def configure_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.include_router(api_router, prefix="/api/v1")
+    app.include_router(api_router, prefix=setting.core.api_prefix)
 
     return app
 
 
 def main() -> None:
+    setting = get_settings()
     uvicorn.run(
         "main:configure_app",
-        port=8000,
-        reload=True,
+        host=setting.core.host,
+        port=setting.core.port,
+        reload=setting.core.debug,
         factory=True,
     )
 

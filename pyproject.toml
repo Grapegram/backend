@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "backend"
+name = "grapegram-backend"
 version = "0.1.0"
 description = ""
 readme = "README.md"
@@ -7,12 +7,16 @@ authors = [
     "Blackgolyb <andrejomelnickij@gmail.com>",
     "Whitegolyb <kirillulianow@gmail.com>",
 ]
-packages = [{ include = "grapegram", from = "src" }]
+packages = [{ include = "src" }]
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
 uvicorn = "^0.30.6"
 fastapi = "^0.112.1"
+pydantic = "^2.8.2"
+pydantic-settings = "^2.4.0"
+envparse = "^0.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -21,9 +25,11 @@ mypy = "^1.11.1"
 sqlalchemy-stubs = "^0.4"
 pre-commit = "^3.8.0"
 
+
 [tool.mypy]
 plugins = ["pydantic.mypy", "sqlmypy"]
 disallow_untyped_defs = true
+ignore_missing_imports = true
 
 [tool.ruff]
 extend-select = [
@@ -35,6 +41,7 @@ extend-select = [
 [tool.ruff.extend-per-file-ignores]
 # Also ignore `F401` in all `__init__.py` files.
 "__init__.py" = ["F401"]
+
 
 [build-system]
 requires = ["poetry-core"]
