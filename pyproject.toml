@@ -17,6 +17,9 @@ fastapi = "^0.112.1"
 pydantic = "^2.8.2"
 pydantic-settings = "^2.4.0"
 envparse = "^0.2.0"
+sqlalchemy = {extras = ["mypy"], version = "^2.0.32"}
+alembic = "^1.13.2"
+asyncpg = "^0.29.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -27,7 +30,7 @@ pre-commit = "^3.8.0"
 
 
 [tool.mypy]
-plugins = ["pydantic.mypy", "sqlmypy"]
+plugins = ["pydantic.mypy", "sqlmypy", "sqlalchemy.ext.mypy.plugin"]
 disallow_untyped_defs = true
 ignore_missing_imports = true
 
