@@ -1,0 +1,44 @@
+version: "3.0"
+services:
+    postgres:
+        container_name: grapegram-postgres
+        image: postgres
+        restart: always
+        env_file:
+            - env/.env
+        ports:
+            - "5432:5432"
+        networks:
+            - grapegram
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"
+                ]
+            interval: 10s
+            timeout: 3s
+            retries: 3
+
+    pgadmin:
+        container_name: pgadmin
+        image: dpage/pgadmin4
+        restart: always
+        ports:
+            - "5050:80"
+        depends_on:
+            - postgres
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@admin.com
+            PGADMIN_DEFAULT_PASSWORD: root
+        networks:
+            - grapegram
+        volumes:
+            - pgadmin-data:/var/lib/pgadmin
+
+networks:
+    grapegram:
+        driver: bridge
+
+volumes:
+    pgadmin-data:
