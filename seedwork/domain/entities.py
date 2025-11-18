@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from typing import TypeVar
 
+from returns.result import Failure, Result, Success
+
 from seedwork.domain.events import DomainEvent
-from seedwork.domain.exceptions import BusinessRuleValidationException
 from seedwork.domain.rule import BusinessRule
 from seedwork.domain.value_objects import GenericUUID
 
@@ -24,9 +25,10 @@ class AggregateRoot(Entity[EntityId]):
 
     _events: list = field(default_factory=list)
 
-    def check_rule(self, rule: BusinessRule):
+    def check_rule(self, rule: BusinessRule) -> Result[None, BusinessRule]:
         if rule.is_broken():
-            raise BusinessRuleValidationException(rule)
+            return Failure(rule)
+        return Success(None)
 
     def register_event(self, event: DomainEvent):
         self._events.append(event)

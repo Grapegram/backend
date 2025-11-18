@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from typing import Protocol
 
 
 @dataclass
-class BusinessRule:
+class BusinessRule(Protocol):
     """This is a base class for implementing domain rules"""
 
     # This is an error message that broken rule reports back
@@ -11,8 +12,7 @@ class BusinessRule:
     def get_message(self) -> str:
         return self.__message
 
-    def is_broken(self) -> bool:
-        pass
+    def is_broken(self) -> bool: ...
 
     def __str__(self):
         return f"{self.__class__.__name__} {super().__str__()}"
