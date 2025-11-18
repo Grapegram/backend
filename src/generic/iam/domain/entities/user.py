@@ -1,12 +1,20 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Self
+
+from returns.result import Result
 
 from seedwork.domain.entities import AggregateRoot
-from seedwork.domain.services import utcnow
-from seedwork.domain.value_objects import Email
+from seedwork.domain.exceptions import VOValidationException
+from seedwork.domain.services.clock import utcnow
+from seedwork.returns import catch_unwrap
+from src.generic.iam.domain.rules.user import (
+    NewEmailMustBeDifferentFromPreviousEmail,
+    NewPasswordMustBeDifferentFromPreviousPassword,
+)
 
 from ..events import UserActivated, UserCreated, UserDeactivated, UserUpdated
-from ..value_objects import UserId
+from ..value_objects import Email, HashedPassword, UserId
 
 
 @dataclass
@@ -20,11 +28,9 @@ class User(AggregateRoot[UserId]):
     id: UserId
     email: Email
     username: str
-    hashed_password: str
+    hashed_password: HashedPassword
     is_active: bool = True
     is_verified: bool = False
-    created_at: datetime = field(default_factory=utcnow)
-    updated_at: datetime = field(default_factory=utcnow)
     last_login_at: datetime | None = None
 
     @classmethod
@@ -33,29 +39,17 @@ class User(AggregateRoot[UserId]):
         email: str,
         username: str,
         hashed_password: str,
-    ) -> "User":
-        """
-        Factory method to create a new user.
-
-        Args:
-            email: User's email address
-            username: User's unique username
-            hashed_password: Pre-hashed password
-
-        Returns:
-            New User instance with UserCreated event
-        """
+    ) -> Result[Self, VOValidationException]:
         user_id = UserId.next_id()
-        email_vo = Email(email)
+        email_vo = Email(email).unwrap()
+        hashed_password_vo = HashedPassword(hashed_password).unwrap()
         now = utcnow()
 
         user = cls(
             id=user_id,
             email=email_vo,
             username=username,
-            hashed_password=hashed_password,
-            created_at=now,
-            updated_at=now,
+            hashed_password=hashed_password_vo,
         )
 
         user.register_event(
@@ -69,16 +63,16 @@ class User(AggregateRoot[UserId]):
 
         return user
 
-    def change_email(self, new_email: str) -> None:
-        """
-        Change user's email address.
-
-        Args:
-            new_email: New email address
-        """
-        self.email = Email(new_email)
+    @catch_unwrap
+    def change_email(
+        self, new_email: str
+    ) -> Result[None, NewEmailMustBeDifferentFromPreviousEmail | VOValidationException]:
+        email_vo = Email(new_email).unwrap()
+        self.check_rule(
+            NewEmailMustBeDifferentFromPreviousEmail(prev_email=self.email, new_email=email_vo)
+        ).unwrap()
+        self.email = email_vo
         self.is_verified = False  # Require re-verification
-        self.updated_at = utcnow()
 
         self.register_event(
             UserUpdated(
@@ -87,15 +81,17 @@ class User(AggregateRoot[UserId]):
             )
         )
 
-    def change_password(self, new_hashed_password: str) -> None:
-        """
-        Change user's password.
-
-        Args:
-            new_hashed_password: New pre-hashed password
-        """
-        self.hashed_password = new_hashed_password
-        self.updated_at = utcnow()
+    @catch_unwrap
+    def change_password(
+        self, new_hashed_password: str
+    ) -> Result[None, NewPasswordMustBeDifferentFromPreviousPassword | VOValidationException]:
+        password_vo = HashedPassword(new_hashed_password)
+        self.check_rule(
+            NewPasswordMustBeDifferentFromPreviousPassword(
+                prev_password=self.hashed_password, new_password=password_vo
+            )
+        ).unwrap()
+        self.hashed_password = password_vo
 
         self.register_event(
             UserUpdated(
@@ -105,12 +101,10 @@ class User(AggregateRoot[UserId]):
         )
 
     def deactivate(self) -> None:
-        """Deactivate the user account."""
         if not self.is_active:
             return
 
         self.is_active = False
-        self.updated_at = utcnow()
 
         self.register_event(
             UserDeactivated(
@@ -120,12 +114,10 @@ class User(AggregateRoot[UserId]):
         )
 
     def activate(self) -> None:
-        """Activate the user account."""
         if self.is_active:
             return
 
         self.is_active = True
-        self.updated_at = utcnow()
 
         self.register_event(
             UserActivated(
@@ -135,12 +127,9 @@ class User(AggregateRoot[UserId]):
         )
 
     def verify_email(self) -> None:
-        """Mark user's email as verified."""
         self.is_verified = True
-        self.updated_at = utcnow()
 
     def record_login(self) -> None:
-        """Record user's last login timestamp."""
         self.last_login_at = utcnow()
 
     def __hash__(self) -> int:
