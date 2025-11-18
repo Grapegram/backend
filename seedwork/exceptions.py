@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 
-@dataclass
+@dataclass(frozen=True)
 class FormattedError(Exception, ABC):
     """Base class for formatted errors.
 
@@ -19,7 +19,6 @@ class FormattedError(Exception, ABC):
 
     _msg_fmt: ClassVar[str]
     _formatted_fields: ClassVar[tuple[str]] = ("*",)
-    __slots__ = ["_formatted_fields", "_msg_fmt"]
 
     @property
     def msg(self):
@@ -32,4 +31,7 @@ class FormattedError(Exception, ABC):
         return self._msg_fmt.format(**{field: getattr(self, field) for field in fields})
 
     def __str__(self) -> str:
+        return self.msg
+
+    def __repr__(self) -> str:
         return self.msg

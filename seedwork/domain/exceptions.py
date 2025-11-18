@@ -1,10 +1,7 @@
-class DomainException(Exception):
-    pass
+from seedwork.exceptions import FormattedError
 
 
-class BusinessRuleValidationException(DomainException):
-    def __init__(self, rule):
-        self.rule = rule
+class DomainException(FormattedError): ...
 
-    def __str__(self):
-        return str(self.rule)
+
+class VOValidationException(DomainException): ...
