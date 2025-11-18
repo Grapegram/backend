@@ -1,7 +1,9 @@
 import uuid
-from typing import Any
+from typing import Any, Protocol, Self
 
 from pydantic import GetCoreSchemaHandler
+from returns.pipeline import is_successful
+from returns.result import Result, Success
 
 
 class GenericUUID(uuid.UUID):
@@ -14,14 +16,21 @@ class GenericUUID(uuid.UUID):
         return handler.generate_schema(uuid.UUID)
 
 
-class ValueObject:
+class ValueObject(Protocol):
     """
     Base class for value objects
     """
 
+    @classmethod
+    def validate(cls, *args, **kwargs) -> Result[Self, ValueError]:
+        """
+        Validate the value object creation parameters.
+        Should be overridden in subclasses.
+        """
+        ...
 
-class Email(str):
-    def __new__(cls, email):
-        if "@" not in email:
-            raise ValueError("Invalid email address")
-        return super().__new__(cls, email)
+    def __new__(cls, *args, **kwargs) -> Result[Self, ValueError]:
+        validation_result = cls.validate(*args, **kwargs)
+        if not is_successful(validation_result):
+            return validation_result
+        return Success(super().__new__(cls))
