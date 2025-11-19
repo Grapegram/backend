@@ -1,0 +1,25 @@
+bounded_context:
+    name: bounded_context
+    structure:
+        src:
+            { core, generic, supporting }:
+                __new__:
+                    presentation:
+                        api: {}
+                        task: {}
+                    infrastructure:
+                        mappers: {}
+                        repositories: {}
+                        handlers: {}
+                        services: {}
+                    application:
+                        contracts: {}
+                        services: {}
+                        stories: {}
+                    domain:
+                        aggregates: {}
+                        events: {}
+                        handlers: {}
+                        mappers: {}
+                        contracts: {}
+                        value_objects: {}
