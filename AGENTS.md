@@ -174,6 +174,114 @@ def deactivate(self) -> None:
     )
 ```
 
+## Business Rules
+
+### Pattern: Domain-Driven Business Rules
+
+Business rules are domain constraints that must be enforced. They are separate classes that inherit from `BusinessRule` and implement the `is_broken()` method.
+
+### ❌ DO NOT check rules with if statements
+
+```python
+def change_email(self, new_email: str) -> Result[None, VOValidationException]:
+    email_vo = Email(new_email).unwrap()
+    if self.email == email_vo:
+        raise ValueError("New email must be different")
+    self.email = email_vo
+```
+
+### ✅ DO use BusinessRule classes and check_rule()
+
+```python
+@catch_unwrap
+def change_email(
+    self, new_email: str
+) -> Result[None, NewEmailMustBeDifferentFromPreviousEmail | VOValidationException]:
+    email_vo = Email(new_email).unwrap()
+    self.check_rule(
+        NewEmailMustBeDifferentFromPreviousEmail(prev_email=self.email, new_email=email_vo)
+    ).unwrap()
+    self.email = email_vo
+    self.is_verified = False
+
+    self.register_event(
+        UserUpdated(user_id=self.id, updated_at=self.updated_at)
+    )
+```
+
+### How to Create Business Rules
+
+#### 1. Create a BusinessRule class in `domain/rules/`
+
+```python
+from seedwork.domain.rule import BusinessRule
+from src.generic.iam.domain.value_objects.email import Email
+
+
+class NewEmailMustBeDifferentFromPreviousEmail(BusinessRule):
+    __message = "The new email must be different from the previous email."
+
+    prev_email: Email
+    new_email: Email
+
+    def is_broken(self) -> bool:
+        return self.prev_email == self.new_email
+```
+
+#### 2. Use it in your aggregate with `check_rule()`
+
+```python
+from src.generic.iam.domain.rules.user import NewEmailMustBeDifferentFromPreviousEmail
+
+@catch_unwrap
+def change_email(
+    self, new_email: str
+) -> Result[None, NewEmailMustBeDifferentFromPreviousEmail | VOValidationException]:
+    email_vo = Email(new_email).unwrap()
+    self.check_rule(
+        NewEmailMustBeDifferentFromPreviousEmail(prev_email=self.email, new_email=email_vo)
+    ).unwrap()
+    self.email = email_vo
+```
+
+### Business Rule Naming Convention
+
+- Use descriptive names that read like requirements: `NewEmailMustBeDifferentFromPreviousEmail`
+- Start with the subject: `Member`, `User`, `Chat`, etc.
+- Use "Must" or "Cannot": `MemberMustNotAlreadyExist`, `CannotRemoveOwner`
+- Be specific: `OnlyAdminCanChangeChatTitle` vs `CanChangeTitle`
+
+### Key Benefits
+
+1. **Explicit**: Rule name appears in return type and code
+2. **Reusable**: Same rule can be used in multiple places
+3. **Testable**: Rules can be tested independently
+4. **Documented**: Rule name serves as documentation
+5. **Traceable**: Easy to find where rules are enforced
+
+### More Examples
+
+```python
+class OnlyAdminCanChangeChatTitle(BusinessRule):
+    __message = "Only admins or owners can change the chat title."
+
+    actor: Member
+
+    def is_broken(self) -> bool:
+        return not self.actor.has_admin_privileges()
+```
+
+```python
+class MemberMustNotAlreadyExist(BusinessRule):
+    __message = "This user is already a member of the chat."
+
+    user_id: str
+    existing_member_user_ids: list[str]
+
+    def is_broken(self) -> bool:
+        return self.user_id in self.existing_member_user_ids
+```
+
 ## When in Doubt
 
 Ask yourself: "Does this docstring tell me something I can't already see from the signature and name?"
