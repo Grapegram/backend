@@ -1,0 +1,15 @@
+Welcome to Grapegram!
+
+Hi {{ username }},
+
+Thank you for signing up! We're excited to have you on board.
+
+To complete your registration and start using Grapegram, please verify your email address by visiting this link:
+
+{{ verification_url }}
+
+This link will expire in 24 hours.
+
+If you didn't create an account with Grapegram, please ignore this email.
+
+© {{ year }} Grapegram. All rights reserved.

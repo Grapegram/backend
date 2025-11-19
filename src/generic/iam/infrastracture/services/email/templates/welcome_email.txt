@@ -1,0 +1,17 @@
+Welcome Aboard!
+
+Hi {{ username }},
+
+Your email has been successfully verified! You're now ready to explore everything Grapegram has to offer.
+
+Getting Started:
+- Complete your profile
+- Connect with friends
+- Start sharing your moments
+- Explore the community
+
+Visit your dashboard: {{ dashboard_url }}
+
+If you have any questions or need help getting started, feel free to reach out to our support team at {{ support_email }}.
+
+© {{ year }} Grapegram. All rights reserved.
