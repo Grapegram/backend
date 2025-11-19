@@ -1,0 +1,54 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cryptography>=45.0.3",
+    "envparse>=0.2.0",
+    "litestar>=2.16.0",
+    "pydantic[email]>=2.11.5",
+    "pydantic-settings>=2.9.1",
+    "uvicorn>=0.34.3",
+    "returns>=0.26.0",
+    "classes>=0.4.1",
+    "stories>=5.1.0",
+    "pyjwt>=2.10.1",
+    "aiosmtplib>=5.0.0",
+    "jinja2>=3.1.6",
+]
+
+[project.scripts]
+serve = "src.entrypoints.api:main"
+
+
+[tool.ruff]
+extend-select = [
+    "I",  #isort
+    "UP", #pyupgrade
+    "F",  #pyflakes
+]
+
+[tool.ruff.extend-per-file-ignores]
+# Also ignore `F401` in all `__init__.py` files.
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+plugins = ["returns.contrib.mypy.returns_plugin"]
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "seedwork"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pre-commit>=4.4.0",
+    "pytest>=9.0.1",
+    "ruff>=0.11.12",
+]
