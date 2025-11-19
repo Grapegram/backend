@@ -48,28 +48,12 @@ class TokenTypeStrategy(ABC):
     def build_payload(self, user: User) -> dict:
         """
         Build the token payload for this token type.
-
-        Args:
-            user: The user for whom to create the token
-
-        Returns:
-            Dictionary containing the token claims
         """
-        pass
 
     def validate_payload(self, payload_dict: dict) -> None:
         """
         Validate token payload for this specific token type.
-
-        Override this method to add type-specific validation logic.
-
-        Args:
-            payload_dict: The decoded token payload
-
-        Raises:
-            ValueError: If payload is invalid for this token type
         """
-        pass
 
 
 class LoginTokenStrategy(TokenTypeStrategy):
