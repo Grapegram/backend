@@ -13,5 +13,5 @@ services:
             - "${PORT}:80"
         build:
             context: ${CONTEXT}
-            dockerfile: containers/Dockerfile
+            dockerfile: ${CONTAINERS}/Dockerfile
             target: production

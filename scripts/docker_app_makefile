@@ -6,20 +6,25 @@ PROJECT_DIR :=	$(realpath $(dir $(lastword\
 
 CONTEXT := ${PROJECT_DIR}
 ENV_FOLDER := ${PROJECT_DIR}/env
-CONTAINERS_FOLDER := ${PROJECT_DIR}/containers
+CONTAINERS := ${PROJECT_DIR}/containers
 ENV_FILE ?= .env
 ENV_FILE := ${ENV_FOLDER}/${ENV_FILE}
 
-DC_PROD = docker compose -f ${CONTAINERS_FOLDER}/docker-compose.yml -f ${CONTAINERS_FOLDER}/docker-compose.prod.yml
-DC_DEV = docker compose -f ${CONTAINERS_FOLDER}/docker-compose.yml -f ${CONTAINERS_FOLDER}/docker-compose.dev.yml
+DC_PROD = docker compose -f ${CONTAINERS}/docker-compose.yml -f ${CONTAINERS}/docker-compose.prod.yml
+DC_DEV = docker compose -f ${CONTAINERS}/docker-compose.yml -f ${CONTAINERS}/docker-compose.dev.yml
 
 include $(ENV_FILE)
 
 export CONTEXT
+export CONTAINERS
 export ENV_FILE
 export LOG
+
 export PORT
 export SMTP__PORT
+export POSTGRES__DB
+export POSTGRES__USER
+export POSTGRES__PASSWORD
 
 
 prod_up:

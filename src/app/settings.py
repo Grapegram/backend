@@ -1,11 +1,12 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Unpack
+from typing import Any, Unpack
 
 from envparse import Env
 from pydantic import (
     BaseModel,
     Field,
+    PostgresDsn,
     ValidationInfo,
     field_validator,
 )
@@ -13,6 +14,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_FOLDER = Path(__file__).parent.parent.parent
 CERTS_FOLDER = PROJECT_FOLDER / "certs"
+_sentinel: Any = object()
 
 
 def get_model_config(**kwargs: Unpack[SettingsConfigDict]) -> SettingsConfigDict:
@@ -39,9 +41,31 @@ class CoreSettings(BaseSettings):
         return v.format(version=values.data.get("api_version"))
 
 
-class JWTSettings(BaseModel):
-    """JWT and token-related settings."""
+class PostgresSettings(BaseModel):
+    driver: str
+    host: str
+    port: int
+    user: str
+    password: str
+    db: str
+    url: PostgresDsn = Field(_sentinel, validate_default=True)
 
+    @field_validator("url", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: str | PostgresDsn, values: ValidationInfo) -> PostgresDsn:
+        if isinstance(v, str):
+            return PostgresDsn(v)
+
+        return PostgresDsn.build(
+            scheme=f"postgresql+{values.data.get('driver')}",
+            username=values.data.get("user"),
+            password=values.data.get("password"),
+            host=f"{values.data.get('host')}:{values.data.get('port')}",
+            path=f"{values.data.get('db') or ''}",
+        )
+
+
+class JWTSettings(BaseModel):
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24  # 24 hours
@@ -51,8 +75,6 @@ class JWTSettings(BaseModel):
 
 
 class SMTPSettings(BaseModel):
-    """SMTP and email-related settings."""
-
     host: str = "mailpit"
     port: int = 1025
     username: str = ""
@@ -72,6 +94,7 @@ class Settings(BaseSettings):
     core: CoreSettings = Field(default_factory=CoreSettings)
     jwt: JWTSettings
     smtp: SMTPSettings
+    postgres: PostgresSettings
 
     model_config = get_model_config()
 
