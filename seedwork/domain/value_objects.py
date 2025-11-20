@@ -7,6 +7,7 @@ from returns.pipeline import is_successful
 from returns.result import Failure, Result, Success
 
 from seedwork.domain.exceptions import VOValidationException
+from seedwork.returns import catch_unwrap
 
 
 class GenericUUID(uuid.UUID):
@@ -42,7 +43,7 @@ class ValueObject(Protocol):
         return instance
 
     def __new__(cls, *args, **kwargs) -> Result[Self, VOValidationException]:
-        validation_result = cls.validate(*args, **kwargs)
+        validation_result = catch_unwrap(cls.validate)(*args, **kwargs)
         if not is_successful(validation_result):
             return validation_result
 
