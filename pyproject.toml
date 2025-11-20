@@ -17,10 +17,11 @@ dependencies = [
     "pyjwt>=2.10.1",
     "aiosmtplib>=5.0.0",
     "jinja2>=3.1.6",
+    "dishka>=1.7.2",
 ]
 
 [project.scripts]
-serve = "src.entrypoints.api:main"
+serve = "src.app.entrypoints.api:main"
 
 
 [tool.ruff]

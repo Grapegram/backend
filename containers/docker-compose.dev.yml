@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+    app:
+        container_name: grapegram_backend_dev
+        image: grapegram_backend_dev
+        build:
+            target: development
+        volumes:
+            - ${CONTEXT}:/app
+            - /app/.venv
+        networks:
+            - app-network
+        depends_on:
+            mailpit:
+                condition: service_healthy
+
+    mailpit:
+        image: axllent/mailpit:latest
+        container_name: mailpit
+        restart: unless-stopped
+        ports:
+            - "${SMTP__PORT}:1025" # SMTP port
+            - "8025:8025" # Web UI port
+        environment:
+            MP_MAX_MESSAGES: 5000
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "wget",
+                    "--no-verbose",
+                    "--tries=1",
+                    "--spider",
+                    "http://localhost:8025/api/v1/info",
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        driver: bridge

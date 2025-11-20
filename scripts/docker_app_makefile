@@ -1,0 +1,52 @@
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+
+PROJECT_DIR :=	$(realpath $(dir $(lastword\
+					$(realpath $(dir $(lastword\
+						$(MAKEFILE_LIST)))))))
+
+CONTEXT := ${PROJECT_DIR}
+ENV_FOLDER := ${PROJECT_DIR}/env
+CONTAINERS_FOLDER := ${PROJECT_DIR}/containers
+ENV_FILE ?= .env
+ENV_FILE := ${ENV_FOLDER}/${ENV_FILE}
+
+DC_PROD = docker compose -f ${CONTAINERS_FOLDER}/docker-compose.yml -f ${CONTAINERS_FOLDER}/docker-compose.prod.yml
+DC_DEV = docker compose -f ${CONTAINERS_FOLDER}/docker-compose.yml -f ${CONTAINERS_FOLDER}/docker-compose.dev.yml
+
+include $(ENV_FILE)
+
+export CONTEXT
+export ENV_FILE
+export LOG
+export PORT
+export SMTP__PORT
+
+
+prod_up:
+	${DC_PROD} up
+
+prod_up_bg:
+	${DC_PROD} up -d
+
+prod_build:
+	${DC_PROD} build
+
+prod_down:
+	${DC_PROD} down --remove-orphans
+
+
+up:
+	${DC_DEV} up
+
+up_bg:
+	${DC_DEV} up -d
+
+build:
+	${DC_DEV} build
+
+down:
+	${DC_DEV} down --remove-orphans
+
+
+test:
+	${DC_DEV} run --rm grapegram_backend_dev pytest .

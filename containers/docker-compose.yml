@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+    app:
+        image: grapegram_backend
+        container_name: grapegram_backend
+        env_file:
+            - ${ENV_FILE}
+        environment:
+            - PORT=80
+            - HOST=0.0.0.0
+        ports:
+            - "${PORT}:80"
+        build:
+            context: ${CONTEXT}
+            dockerfile: containers/Dockerfile
+            target: production
