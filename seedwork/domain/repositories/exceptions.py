@@ -4,14 +4,14 @@ from typing import Any, ClassVar
 from seedwork.exceptions import FormattedError
 
 
-@dataclass
+@dataclass(frozen=True)
 class RepositoryException(FormattedError):
     """Base exception for repository operations."""
 
     _msg_fmt: ClassVar[str] = "Repository operation failed"
 
 
-@dataclass
+@dataclass(frozen=True)
 class EntityNotFoundException(RepositoryException):
     """Exception raised when an entity is not found in the repository."""
 
@@ -21,7 +21,7 @@ class EntityNotFoundException(RepositoryException):
     _msg_fmt: ClassVar[str] = "Entity {entity_type} with id {entity_id} not found"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RepositoryConnectionException(RepositoryException):
     """Exception raised when repository cannot connect to storage."""
 
@@ -30,7 +30,7 @@ class RepositoryConnectionException(RepositoryException):
     _msg_fmt: ClassVar[str] = "Repository connection failed: {reason}"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RepositoryOperationException(RepositoryException):
     """Exception raised when a repository operation fails."""
 

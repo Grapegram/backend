@@ -5,12 +5,11 @@ from seedwork.domain.repositories.exceptions import (
     RepositoryOperationException,
 )
 from seedwork.domain.repositories.in_memory import InMemoryRepository
-from seedwork.domain.repositories.repository import Repository, SyncRepository
+from seedwork.domain.repositories.repository import Repository
 
 __all__ = [
     # Protocols
     "Repository",
-    "SyncRepository",
     # Implementations
     "InMemoryRepository",
     # Exceptions

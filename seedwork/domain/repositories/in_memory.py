@@ -1,16 +1,14 @@
-import copy
-
 from returns.maybe import Maybe, Nothing
 from returns.result import Failure, Result
 
 from seedwork.domain.entities import AggregateRoot
 from seedwork.domain.repositories.exceptions import EntityNotFoundException
-from seedwork.domain.repositories.repository import SyncRepository
+from seedwork.domain.repositories.repository import Repository
 from seedwork.domain.value_objects import GenericUUID
 
 
 class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
-    SyncRepository[TEntityId, TEntity]
+    Repository[TEntityId, TEntity]
 ):
     """
     Generic in-memory repository implementation for testing.
@@ -31,7 +29,7 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
     def __init__(self):
         self._storage: dict[TEntityId, TEntity] = {}
 
-    def save(self, entity: TEntity) -> None:
+    async def save(self, entity: TEntity) -> None:
         """
         Save an entity to in-memory storage.
 
@@ -40,9 +38,9 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
         """
 
         # Store a deep copy to prevent external mutations
-        self._storage[entity.id] = copy.deepcopy(entity)
+        self._storage[entity.id] = entity
 
-    def get(self, entity_id: TEntityId) -> Maybe[TEntity]:
+    async def get(self, entity_id: TEntityId) -> Maybe[TEntity]:
         """
         Retrieve an entity by ID.
 
@@ -56,12 +54,10 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
         if entity is None:
             return Nothing
 
-        import copy
-
         # Return a copy to prevent external mutations
-        return copy.deepcopy(entity)
+        return entity
 
-    def delete(self, entity_id: TEntityId) -> Result[None, EntityNotFoundException]:
+    async def delete(self, entity_id: TEntityId) -> Result[None, EntityNotFoundException]:
         """
         Delete an entity from storage.
 
@@ -77,7 +73,7 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
             )
         del self._storage[entity_id]
 
-    def exists(self, entity_id: TEntityId) -> bool:
+    async def exists(self, entity_id: TEntityId) -> bool:
         """
         Check if an entity exists.
 
@@ -89,7 +85,7 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
         """
         return entity_id in self._storage
 
-    def clear(self) -> None:
+    async def clear(self) -> None:
         """
         Clear all entities from storage.
 
@@ -97,7 +93,7 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
         """
         self._storage.clear()
 
-    def count(self) -> int:
+    async def count(self) -> int:
         """
         Get the number of entities in storage.
 
@@ -106,13 +102,12 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
         """
         return len(self._storage)
 
-    def all(self) -> list[TEntity]:
+    async def all(self) -> list[TEntity]:
         """
         Get all entities from storage.
 
         Returns:
             A list of all entities (as copies)
         """
-        import copy
 
-        return [copy.deepcopy(entity) for entity in self._storage.values()]
+        return [entity for entity in self._storage.values()]
