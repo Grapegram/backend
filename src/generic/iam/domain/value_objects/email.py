@@ -157,6 +157,9 @@ class Email(ValueObject):
         """Normalize email by stripping whitespace and converting to lowercase."""
         return email.strip().lower()
 
+    def __str__(self) -> str:
+        return self._value
+
     def __repr__(self) -> str:
         return f"Email('{self._value}')"
 
