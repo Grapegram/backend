@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
 
-from returns.result import Result
+from returns.result import Result, Success
 
 from seedwork.domain.entities import AggregateRoot
 from seedwork.domain.exceptions import VOValidationException
@@ -34,6 +34,7 @@ class User(AggregateRoot[UserId]):
     last_login_at: datetime | None = None
 
     @classmethod
+    @catch_unwrap
     def create(
         cls,
         email: str,
@@ -61,7 +62,7 @@ class User(AggregateRoot[UserId]):
             )
         )
 
-        return user
+        return Success(user)
 
     @catch_unwrap
     def change_email(
