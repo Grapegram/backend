@@ -12,12 +12,12 @@ from src.generic.iam.domain.value_objects.password import (
     WeakPasswordError,
 )
 
-from ...domain import User
+from ...domain.entities import User
 from ...domain.repositories import UserRepository
 from ..services.hasher import HasherService
 
 
-class FailedStatues(Enum, str):
+class FailedStatues(str, Enum):
     USER_NOT_FOUND = "USER_NOT_FOUND"
     ACCOUNT_DEACTIVATED = "ACCOUNT_DEACTIVATED"
     INVALID_CURRENT_PASSWORD = "INVALID_CURRENT_PASSWORD"

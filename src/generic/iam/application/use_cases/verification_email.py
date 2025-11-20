@@ -2,17 +2,16 @@ from dataclasses import dataclass
 from enum import Enum
 
 from returns.maybe import Nothing
-from returns.pipeline import is_successful
 from returns.result import Failure, Result, Success
 from stories import I, Story
 from stories import State as BaseState
 
-from ...domain import User
+from ...domain.entities import User
 from ...domain.repositories import UserRepository
 from ..services.user_token import UserTokenService, VerificationTokenStrategy
 
 
-class FailedStatuses(Enum, str):
+class FailedStatuses(str, Enum):
     MISSING_TOKEN = "MISSING_TOKEN"
     INVALID_TOKEN = "INVALID_TOKEN"
     TOKEN_EXPIRED = "TOKEN_EXPIRED"

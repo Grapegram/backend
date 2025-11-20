@@ -4,8 +4,9 @@ from enum import Enum
 from returns.maybe import Nothing
 from returns.pipeline import is_successful
 from returns.result import Failure, Result, Success
-from stories import I, Story
-from stories import State as BaseState
+
+from seedwork.stories import I, Interrupt, Story
+from seedwork.stories import State as BaseState
 
 from ...domain.entities import User
 from ...domain.repositories import UserRepository
@@ -14,14 +15,14 @@ from ..services.hasher import HasherService
 from ..services.user_token import UserTokenService, VerificationTokenStrategy
 
 
-class FailedStatuses(Enum, str):
+class FailedStatuses(str, Enum):
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
     EMAIL_ALREADY_EXISTS = "EMAIL_ALREADY_EXISTS"
     USERNAME_ALREADY_EXISTS = "USERNAME_ALREADY_EXISTS"
 
 
 @dataclass
-class RegisterUser(Story):
+class Registeration(Story):
     """
     Story for registering a new user in the system.
     """
@@ -45,24 +46,24 @@ class RegisterUser(Story):
         verification_token: str
 
         # result
-        result: Result[User, FailedStatuses]
+        result: Result[None, FailedStatuses]
 
     async def check_email_uniqueness(self, state: State):
         existing_user = await self.user_repo.get_by_email(state.email)
         if existing_user != Nothing:
             state.result = Failure(FailedStatuses.EMAIL_ALREADY_EXISTS)
-            raise Exception
+            raise Interrupt
 
     async def check_username_uniqueness(self, state: State):
         existing_user = await self.user_repo.get_by_username(state.username)
         if existing_user != Nothing:
             state.result = Failure(FailedStatuses.USERNAME_ALREADY_EXISTS)
-            raise Exception
+            raise Interrupt
 
-    def hash_password(self, state: State):
+    async def hash_password(self, state: State):
         state.hashed_password = self.hasher_service.hash(state.password)
 
-    def create_user(self, state: State):
+    async def create_user(self, state: State):
         user = User.create(
             email=state.email,
             username=state.username,
@@ -70,12 +71,12 @@ class RegisterUser(Story):
         )
         if not is_successful(user):
             state.result = Failure(FailedStatuses.INVALID_CREDENTIALS)
-            raise Exception
-        state.user = user
+            raise Interrupt
+        state.user = user.unwrap()
 
     async def save_user(self, state: State):
         await self.user_repo.save(state.user)
-        state.result = Success(state.user)
+        state.result = Success(None)
 
     async def send_verification_email(self, state: State):
         state.verification_token = self.user_token_service.create(

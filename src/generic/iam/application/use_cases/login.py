@@ -3,16 +3,17 @@ from enum import Enum
 
 from returns.maybe import Nothing
 from returns.result import Failure, Result, Success
-from stories import I, Story
-from stories import State as BaseState
 
-from ...domain import User
+from seedwork.stories import I, Interrupt, Story
+from seedwork.stories import State as BaseState
+
+from ...domain.entities import User
 from ...domain.repositories import UserRepository
 from ..services.hasher import HasherService
 from ..services.user_token import LoginTokenStrategy, UserTokenService
 
 
-class FailedStatuses(Enum, str):
+class FailedStatuses(str, Enum):
     MISSING_CREDENTIAL = "MISSING_CREDENTIAL"
     MISSING_PASSWORD = "MISSING_PASSWORD"
     USER_NOT_FOUND = "USER_NOT_FOUND"
@@ -26,7 +27,7 @@ class AuthToken:
 
 
 @dataclass
-class LoginUser(Story):
+class Login(Story):
     """
     Story for authenticating a user and creating a session.
     """
@@ -54,28 +55,28 @@ class LoginUser(Story):
         user = await self.user_repo.get_by_email(state.credential)
         if user == Nothing:
             user = await self.user_repo.get_by_username(state.credential)
-        if state.user == Nothing:
+        if user == Nothing:
             state.result = Failure(FailedStatuses.INVALID_CREDENTIALS)
-            raise Exception
+            raise Interrupt
         state.user = user
 
-    def check_account_active(self, state: State):
+    async def check_account_active(self, state: State):
         if not state.user.is_active:
             state.result = Failure(FailedStatuses.ACCOUNT_DEACTIVATED)
-            raise Exception
+            raise Interrupt
 
-    def verify_password(self, state: State):
+    async def verify_password(self, state: State):
         if not self.hasher_service.verify(state.password, state.user.hashed_password):
             state.result = Failure(FailedStatuses.INVALID_CREDENTIALS)
-            raise Exception
+            raise Interrupt
 
-    def record_login(self, state: State):
+    async def record_login(self, state: State):
         state.user.record_login()
 
     async def save_user(self, state: State):
         await self.user_repo.save(state.user)
 
-    def generate_auth_token(self, state: State):
+    async def generate_auth_token(self, state: State):
         auth_token = self.user_token_service.create(LoginTokenStrategy, state.user)
         state.result = Success(AuthToken(access_token=auth_token))
 
