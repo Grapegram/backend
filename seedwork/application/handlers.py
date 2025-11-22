@@ -1,36 +1,20 @@
-from abc import ABC
-from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
-from typing import Any, Concatenate
+from typing import Any, Protocol
 
-from seedwork.domain.events import DomainEvent
+from seedwork.handler import Handlable
 
 
-@dataclass(frozen=True)
-class Message(ABC): ...
+class Command(Handlable):
+    __prefix__ = "command"
 
 
-class Command(Message): ...
+class Query(Handlable):
+    __prefix__ = "query"
 
 
-class Query(Message): ...
+class Handler[T: Handlable](Protocol):
+    handled: type[T]
 
+    async def handler(self, handled: T) -> Any: ...
 
-type Handlable = Message | DomainEvent
-type HandlerFunction[T = Any] = Callable[Concatenate[Handlable, ...], Awaitable[T]]
-
-
-class Handler[T: Handlable]:
-    handled: T
-    handler: HandlerFunction[T]
-
-    def __init__(self, handled: T, handler: HandlerFunction[T]):
-        self.handled = handled
-        self.handler = handler
-
-    def __call__(self, *args, **kwargs):
-        return self.handler(*args, **kwargs)
-
-
-def handle[T: Handlable](handled: T) -> Callable[[HandlerFunction[T]], Handler[T]]:
-    return lambda handler: Handler(handled, handler)
+    def __call__(self, handled: T):
+        return self.handler(handled)
