@@ -1,14 +1,26 @@
 from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
+from faststream.redis.annotations import RedisBroker
 
+from seedwork.application.event_bus import EventBus
+from seedwork.infrastructure.event_bus import FastStreamEventBus
 from src.app.settings import Settings, get_settings
-from src.generic.iam.infrastracture.di import IAMProvider
-from src.generic.iam.infrastracture.settings import IAMSettings
+from src.generic.iam.infrastructure.di import IAMProvider
+from src.generic.iam.infrastructure.settings import IAMSettings
 
 
 class SettingsProvider(Provider):
     @provide(scope=Scope.APP)
     def provide_app_settings(self) -> Settings:
         return get_settings()
+
+    @provide(scope=Scope.APP)
+    def provide_event_bus(self, settings: Settings) -> RedisBroker:
+        print(settings.redis.url)
+        return RedisBroker(settings.redis.url)
+
+    @provide(scope=Scope.APP)
+    def provide_redis_bus(self, redis_bus: RedisBroker) -> EventBus:
+        return FastStreamEventBus(redis_bus)
 
     @provide(scope=Scope.APP)
     def provide_iam_settings(self, settings: Settings) -> IAMSettings:
