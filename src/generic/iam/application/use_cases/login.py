@@ -4,8 +4,8 @@ from enum import Enum
 from returns.maybe import Nothing
 from returns.result import Failure, Result, Success
 
-from seedwork.stories import I, Interrupt, Story
-from seedwork.stories import State as BaseState
+from seedwork.application.stories import I, Interrupt, Story
+from seedwork.application.stories import State as BaseState
 
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
