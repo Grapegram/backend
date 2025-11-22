@@ -1,6 +1,6 @@
 from seedwork.domain.rule import BusinessRule
-from src.generic.iam.domain.value_objects.email import Email
-from src.generic.iam.domain.value_objects.hashed_password import HashedPassword
+
+from .value_objects import Email, HashedPassword
 
 
 class NewPasswordMustBeDifferentFromPreviousPassword(BusinessRule):

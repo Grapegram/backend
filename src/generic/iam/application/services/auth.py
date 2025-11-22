@@ -3,9 +3,8 @@ from dataclasses import dataclass
 from returns.pipeline import is_successful
 from returns.result import Failure, Result, Success
 
-from src.generic.iam.domain.entities.user import User
-from src.generic.iam.domain.repositories.user import UserRepository
-
+from ...domain.aggregates import User
+from ...domain.repositories import UserRepository
 from .user_token import LoginTokenStrategy, UserTokenPayload, UserTokenService
 
 

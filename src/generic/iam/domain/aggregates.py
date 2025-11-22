@@ -8,13 +8,13 @@ from seedwork.domain.entities import AggregateRoot
 from seedwork.domain.exceptions import VOValidationException
 from seedwork.domain.services.clock import utcnow
 from seedwork.returns import catch_unwrap
-from src.generic.iam.domain.rules.user import (
+
+from .user_events import UserActivated, UserCreated, UserDeactivated, UserUpdated
+from .user_rules import (
     NewEmailMustBeDifferentFromPreviousEmail,
     NewPasswordMustBeDifferentFromPreviousPassword,
 )
-
-from ..events import UserActivated, UserCreated, UserDeactivated, UserUpdated
-from ..value_objects import Email, HashedPassword, UserId
+from .value_objects import Email, HashedPassword, UserId
 
 
 @dataclass

@@ -6,14 +6,9 @@ from returns.result import Failure, Result, Success
 from stories import I, Story
 from stories import State as BaseState
 
-from src.generic.iam.domain.value_objects.password import (
-    InvalidPasswordError,
-    Password,
-    WeakPasswordError,
-)
-
-from ...domain.entities import User
+from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
+from ...domain.value_objects import InvalidPasswordError, Password, WeakPasswordError
 from ..services.hasher import HasherService
 
 

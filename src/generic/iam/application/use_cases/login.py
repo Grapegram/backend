@@ -7,7 +7,7 @@ from returns.result import Failure, Result, Success
 from seedwork.stories import I, Interrupt, Story
 from seedwork.stories import State as BaseState
 
-from ...domain.entities import User
+from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
 from ..services.hasher import HasherService
 from ..services.user_token import LoginTokenStrategy, UserTokenService

@@ -4,8 +4,8 @@ from returns.maybe import Maybe
 
 from seedwork.domain.repositories import Repository
 
-from ..entities.user import User
-from ..value_objects.user_id import UserId
+from .aggregates import User
+from .value_objects.user_id import UserId
 
 
 class UserRepository(Repository[UserId, User], Protocol):

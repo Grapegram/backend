@@ -3,7 +3,7 @@ from datetime import datetime
 
 from seedwork.domain.events import DomainEvent
 
-from ..value_objects import UserId
+from .value_objects import UserId
 
 
 @dataclass

@@ -1,6 +1,6 @@
 from classes import typeclass
 
-from ..entities.user import User
+from .aggregates import User
 
 
 @typeclass

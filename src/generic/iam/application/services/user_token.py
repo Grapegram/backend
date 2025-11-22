@@ -4,7 +4,7 @@ from datetime import datetime
 
 from returns.result import Failure, Result, Success
 
-from ...domain.entities import User
+from ...domain.aggregates import User
 from .token import InvalidTokenError, TokenExpiredError, TokenService
 
 
