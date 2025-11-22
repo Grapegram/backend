@@ -93,9 +93,23 @@ services:
         networks:
             - app-network
 
+    minio:
+        image: minio/minio
+        container_name: minio
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        environment:
+            MINIO_ROOT_USER: admin
+            MINIO_ROOT_PASSWORD: password123
+        command: server /data --console-address ":9001"
+        volumes:
+            - grapegram_s3_data:/data
+
 volumes:
     grapegram_postgres_data:
     grapegram_pgadmin_data:
+    grapegram_s3_data:
 
 networks:
     app-network:
