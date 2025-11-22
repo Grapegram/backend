@@ -6,7 +6,7 @@ from seedwork.domain.events import DomainEvent
 from .value_objects import UserId
 
 
-@dataclass
+@dataclass(frozen=True)
 class UserCreated(DomainEvent):
     """Event raised when a new user is created"""
 
@@ -16,7 +16,7 @@ class UserCreated(DomainEvent):
     created_at: datetime
 
 
-@dataclass
+@dataclass(frozen=True)
 class UserUpdated(DomainEvent):
     """Event raised when user information is updated"""
 
@@ -24,7 +24,7 @@ class UserUpdated(DomainEvent):
     updated_at: datetime
 
 
-@dataclass
+@dataclass(frozen=True)
 class UserDeactivated(DomainEvent):
     """Event raised when a user is deactivated"""
 
@@ -32,7 +32,7 @@ class UserDeactivated(DomainEvent):
     deactivated_at: datetime
 
 
-@dataclass
+@dataclass(frozen=True)
 class UserActivated(DomainEvent):
     """Event raised when a user is activated"""
 

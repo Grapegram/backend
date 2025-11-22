@@ -9,8 +9,8 @@ from seedwork.domain.exceptions import VOValidationException
 from seedwork.domain.services.clock import utcnow
 from seedwork.returns import catch_unwrap
 
-from .user_events import UserActivated, UserCreated, UserDeactivated, UserUpdated
-from .user_rules import (
+from .events import UserActivated, UserCreated, UserDeactivated, UserUpdated
+from .rules import (
     NewEmailMustBeDifferentFromPreviousEmail,
     NewPasswordMustBeDifferentFromPreviousPassword,
 )
@@ -55,9 +55,9 @@ class User(AggregateRoot[UserId]):
 
         user.register_event(
             UserCreated(
-                user_id=user_id,
-                email=email,
-                username=username,
+                user_id=user.id,
+                email=str(user.email),
+                username=user.username,
                 created_at=now,
             )
         )
