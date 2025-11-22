@@ -1,12 +1,14 @@
 from dishka import Provider, Scope, provide
 
+from seedwork.application.event_bus import EventBus
+from src.generic.iam.application.handlers.send_verification_email import SendVerificationEmail
 from src.generic.iam.application.services.email import EmailService
 from src.generic.iam.application.services.hasher import HasherService
 from src.generic.iam.application.services.token import TokenService
 from src.generic.iam.application.services.user_token import UserTokenService
 from src.generic.iam.application.use_cases.login import Login
-from src.generic.iam.application.use_cases.registration import RegistrationByEmail
-from src.generic.iam.domain import UserRepository
+from src.generic.iam.application.use_cases.registration_by_email import RegistrationByEmail
+from src.generic.iam.domain.repositories import UserRepository
 from src.generic.iam.infrastructure.repositories import (
     InMemoryUserRepository,
 )
@@ -64,6 +66,17 @@ class IAMProvider(Provider):
         # For production, use: SQLAlchemyUserRepository or similar
         return InMemoryUserRepository()
 
+    @provide(scope=Scope.APP)
+    def provide_send_verification_email(
+        self,
+        user_token_service: UserTokenService,
+        email_service: EmailService,
+    ) -> SendVerificationEmail:
+        return SendVerificationEmail(
+            user_token_service=user_token_service,
+            email_service=email_service,
+        )
+
     @provide(scope=Scope.REQUEST)
     def provide_login_story(
         self,
@@ -71,19 +84,23 @@ class IAMProvider(Provider):
         hasher_service: HasherService,
         user_token_service: UserTokenService,
     ) -> Login:
-        return Login(user_repo, hasher_service, user_token_service)
+        return Login(
+            user_repo=user_repo,
+            hasher_service=hasher_service,
+            user_token_service=user_token_service,
+        )
 
     @provide(scope=Scope.REQUEST)
     def provide_registration_story(
         self,
+        event_bus: EventBus,
         user_repo: UserRepository,
         hasher_service: HasherService,
         user_token_service: UserTokenService,
-        email_service: EmailService,
     ) -> RegistrationByEmail:
         return RegistrationByEmail(
-            user_repo,
-            hasher_service,
-            user_token_service,
-            email_service,
+            event_bus=event_bus,
+            user_repo=user_repo,
+            hasher_service=hasher_service,
+            user_token_service=user_token_service,
         )
