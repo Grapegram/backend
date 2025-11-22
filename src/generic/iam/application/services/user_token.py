@@ -81,6 +81,12 @@ class LoginTokenStrategy(TokenTypeStrategy):
             raise ValueError(f"Missing required fields for login token: {missing}")
 
 
+@dataclass(frozen=True)
+class VerificationTokenPayload:
+    user_id: str
+    email: str
+
+
 class VerificationTokenStrategy(TokenTypeStrategy):
     """Strategy for email verification tokens with minimal claims."""
 
@@ -88,9 +94,9 @@ class VerificationTokenStrategy(TokenTypeStrategy):
     def token_type(self) -> str:
         return "email_verification"
 
-    def build_payload(self, user: User) -> dict:
+    def build_payload(self, user: VerificationTokenPayload) -> dict:
         return {
-            "user_id": str(user.id),
+            "user_id": str(user.user_id),
             "email": str(user.email),
             "type": self.token_type,
         }

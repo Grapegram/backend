@@ -5,14 +5,16 @@ from returns.maybe import Nothing
 from returns.pipeline import is_successful
 from returns.result import Failure, Result, Success
 
+from seedwork.application.event_bus import EventBus
 from seedwork.application.stories import I, Interrupt, Story
 from seedwork.application.stories import State as BaseState
+from seedwork.domain.events import filter_events
+from src.generic.iam.domain.events import UserCreated
 
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
-from ..services.email import EmailService
 from ..services.hasher import HasherService
-from ..services.user_token import UserTokenService, VerificationTokenStrategy
+from ..services.user_token import UserTokenService
 
 
 class FailedStatuses(str, Enum):
@@ -32,7 +34,7 @@ class RegistrationByEmail(Story):
     I.hash_password
     I.create_user
     I.save_user
-    I.send_verification_email
+    I.publish_events
 
     class State(BaseState):
         # input
@@ -78,18 +80,12 @@ class RegistrationByEmail(Story):
         await self.user_repo.save(state.user)
         state.result = Success(None)
 
-    async def send_verification_email(self, state: State):
-        state.verification_token = self.user_token_service.create(
-            VerificationTokenStrategy, state.user
-        )
-        await self.email_service.send_verification_email(
-            email=str(state.user.email),
-            username=state.user.username,
-            token=state.verification_token,
-        )
+    async def publish_events(self, state: State):
+        for envent in filter_events(state.user.collect_events(), (UserCreated,)):
+            await self.event_bus.publish(envent)
 
     # Dependencies to be injected
+    event_bus: EventBus
     user_repo: UserRepository
     hasher_service: HasherService
     user_token_service: UserTokenService
-    email_service: EmailService
