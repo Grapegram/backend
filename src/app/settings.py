@@ -7,6 +7,7 @@ from pydantic import (
     BaseModel,
     Field,
     PostgresDsn,
+    RedisDsn,
     ValidationInfo,
     field_validator,
 )
@@ -41,6 +42,31 @@ class CoreSettings(BaseSettings):
         return v.format(version=values.data.get("api_version"))
 
 
+class RedisSettings(BaseModel):
+    driver: str = "redis"
+    host: str
+    port: int
+    user: str | None = None
+    password: str | None = None
+    url: str = Field(_sentinel, validate_default=True)
+
+    @field_validator("url", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: str | RedisDsn, values: ValidationInfo) -> RedisDsn:
+        if isinstance(v, str):
+            return RedisDsn(v)
+
+        return str(
+            RedisDsn.build(
+                scheme=values.data.get("driver"),
+                username=values.data.get("user"),
+                password=values.data.get("password"),
+                host=values.data.get("host"),
+                port=values.data.get("port"),
+            )
+        )
+
+
 class PostgresSettings(BaseModel):
     driver: str
     host: str
@@ -48,20 +74,23 @@ class PostgresSettings(BaseModel):
     user: str
     password: str
     db: str
-    url: PostgresDsn = Field(_sentinel, validate_default=True)
+    url: str = Field(_sentinel, validate_default=True)
 
     @field_validator("url", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: str | PostgresDsn, values: ValidationInfo) -> PostgresDsn:
         if isinstance(v, str):
-            return PostgresDsn(v)
+            return str(PostgresDsn(v))
 
-        return PostgresDsn.build(
-            scheme=f"postgresql+{values.data.get('driver')}",
-            username=values.data.get("user"),
-            password=values.data.get("password"),
-            host=f"{values.data.get('host')}:{values.data.get('port')}",
-            path=f"{values.data.get('db') or ''}",
+        return str(
+            PostgresDsn.build(
+                scheme=f"postgresql+{values.data.get('driver')}",
+                username=values.data.get("user"),
+                password=values.data.get("password"),
+                host=values.data.get("host"),
+                port=values.data.get("port"),
+                path=f"{values.data.get('db') or ''}",
+            )
         )
 
 
@@ -95,6 +124,7 @@ class Settings(BaseSettings):
     jwt: JWTSettings
     smtp: SMTPSettings
     postgres: PostgresSettings
+    redis: RedisSettings
 
     model_config = get_model_config()
 
