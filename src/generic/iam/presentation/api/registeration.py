@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from dishka.integrations.litestar import FromDishka
+from dishka.integrations.litestar import FromDishka, inject
 from litestar import post
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import HTTPException
@@ -10,7 +10,7 @@ from msgspec import Struct
 from returns.result import Failure, Success
 from stories import State
 
-from src.generic.iam.application.use_cases.registration import (
+from src.generic.iam.application.use_cases.registration_by_email import (
     FailedStatuses,
     RegistrationByEmail,
 )
@@ -28,10 +28,9 @@ class RegisterRequest(Struct):
     summary="Register new user",
     description="Register a new user with email, username and password",
 )
+@inject
 async def register(
-    self,
     data: Annotated[RegisterRequest, Body(media_type=RequestEncodingType.JSON)],
-    *,
     story: FromDishka[RegistrationByEmail],
 ) -> None:
     state = State(

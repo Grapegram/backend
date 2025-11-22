@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from dishka.integrations.litestar import FromDishka
+from dishka.integrations.litestar import FromDishka, inject
 from litestar import post
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import HTTPException
@@ -28,10 +28,9 @@ class LoginResponse(Struct):
     summary="Login user",
     description="Authenticate user with email/username and password",
 )
+@inject
 async def login(
-    self,
     data: Annotated[LoginRequest, Body(media_type=RequestEncodingType.JSON)],
-    *,
     story: FromDishka[Login],
 ) -> LoginResponse:
     state = State(
