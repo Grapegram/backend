@@ -1,10 +1,10 @@
 from .change_password import ChangePassword
 from .login import Login
-from .registration import Registeration
+from .registration_by_email import RegistrationByEmail
 from .verification_email import VerifyEmail
 
 __all__ = [
-    "Registeration",
+    "RegistrationByEmail",
     "Login",
     "VerifyEmail",
     "ChangePassword",

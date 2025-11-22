@@ -12,7 +12,7 @@ from stories import State
 
 from src.generic.iam.application.use_cases.registration import (
     FailedStatuses,
-    Registeration,
+    RegistrationByEmail,
 )
 
 
@@ -32,7 +32,7 @@ async def register(
     self,
     data: Annotated[RegisterRequest, Body(media_type=RequestEncodingType.JSON)],
     *,
-    story: FromDishka[Registeration],
+    story: FromDishka[RegistrationByEmail],
 ) -> None:
     state = State(
         email=data.email,

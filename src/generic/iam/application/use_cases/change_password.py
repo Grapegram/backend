@@ -3,8 +3,9 @@ from enum import Enum
 
 from returns.maybe import Nothing
 from returns.result import Failure, Result, Success
-from stories import I, Story
-from stories import State as BaseState
+
+from seedwork.application.stories import I, Interrupt, Story
+from seedwork.application.stories import State as BaseState
 
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
@@ -53,27 +54,27 @@ class ChangePassword(Story):
         user = await self.user_repo.get(state.user_id)
         if user == Nothing:
             state.result = Failure(FailedStatues.USER_NOT_FOUND)
-            raise Exception
+            raise Interrupt
         state.user = user
 
     def check_account_active(self, state: State):
         if not state.user.is_active:
             state.result = Failure(FailedStatues.ACCOUNT_DEACTIVATED)
-            raise Exception
+            raise Interrupt
 
     def verify_current_password(self, state: State):
         if not self.hasher_service.verify(state.current_password, state.user.hashed_password):
             state.result = Failure(FailedStatues.INVALID_CURRENT_PASSWORD)
-            raise Exception
+            raise Interrupt
 
     def verify_new_password(self, state: State):
         match Password(state.new_password):
             case Failure(InvalidPasswordError()):
                 state.result = Failure(FailedStatues.INVALID_PASSWORD)
-                raise Exception
+                raise Interrupt
             case Failure(WeakPasswordError()):
                 state.result = Failure(FailedStatues.WEEK_PASSWORD)
-                raise Exception
+                raise Interrupt
 
     def hash_new_password(self, state: State):
         state.new_hashed_password = self.hasher_service.hash(state.new_password)

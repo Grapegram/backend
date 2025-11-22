@@ -5,8 +5,8 @@ from returns.maybe import Nothing
 from returns.pipeline import is_successful
 from returns.result import Failure, Result, Success
 
-from seedwork.stories import I, Interrupt, Story
-from seedwork.stories import State as BaseState
+from seedwork.application.stories import I, Interrupt, Story
+from seedwork.application.stories import State as BaseState
 
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
@@ -22,7 +22,7 @@ class FailedStatuses(str, Enum):
 
 
 @dataclass
-class Registeration(Story):
+class RegistrationByEmail(Story):
     """
     Story for registering a new user in the system.
     """

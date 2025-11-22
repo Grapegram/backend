@@ -5,12 +5,12 @@ from src.generic.iam.application.services.hasher import HasherService
 from src.generic.iam.application.services.token import TokenService
 from src.generic.iam.application.services.user_token import UserTokenService
 from src.generic.iam.application.use_cases.login import Login
-from src.generic.iam.application.use_cases.registration import Registeration
-from src.generic.iam.domain.repositories.user import UserRepository
-from src.generic.iam.infrastracture.repositories import (
+from src.generic.iam.application.use_cases.registration import RegistrationByEmail
+from src.generic.iam.domain import UserRepository
+from src.generic.iam.infrastructure.repositories import (
     InMemoryUserRepository,
 )
-from src.generic.iam.infrastracture.services import (
+from src.generic.iam.infrastructure.services import (
     BCryptHasherService,
     JWTTokenService,
     SMTPEmailService,
@@ -80,8 +80,8 @@ class IAMProvider(Provider):
         hasher_service: HasherService,
         user_token_service: UserTokenService,
         email_service: EmailService,
-    ) -> Registeration:
-        return Registeration(
+    ) -> RegistrationByEmail:
+        return RegistrationByEmail(
             user_repo,
             hasher_service,
             user_token_service,

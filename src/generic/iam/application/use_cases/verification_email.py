@@ -3,8 +3,9 @@ from enum import Enum
 
 from returns.maybe import Nothing
 from returns.result import Failure, Result, Success
-from stories import I, Story
-from stories import State as BaseState
+
+from seedwork.application.stories import I, Interrupt, Story
+from seedwork.application.stories import State as BaseState
 
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
@@ -60,19 +61,19 @@ class VerifyEmail(Story):
                     state.result = Failure(FailedStatuses.INVALID_TOKEN_TYPE)
                 else:
                     state.result = Failure(FailedStatuses.INVALID_TOKEN)
-                raise Exception
+                raise Interrupt
 
     async def find_user(self, state: State):
         user = await self.user_repo.get(state.user_id)
         if user == Nothing:
             state.result = Failure(FailedStatuses.USER_NOT_FOUND)
-            raise Exception
+            raise Interrupt
         state.user = user
 
     def check_not_already_verified(self, state: State):
         if state.user.is_verified:
             state.result = Failure(FailedStatuses.ALREADY_VERIFIED)
-            raise Exception
+            raise Interrupt
 
     def mark_as_verified(self, state: State):
         state.user.verify_email()
