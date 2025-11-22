@@ -1,6 +1,8 @@
 from returns.maybe import Maybe, Nothing
 
-from src.generic.iam.domain import User, UserId, UserRepository
+from src.generic.iam.domain.aggregates import User
+from src.generic.iam.domain.repositories import UserRepository
+from src.generic.iam.domain.value_objects.user_id import UserId
 
 
 class InMemoryUserRepository(UserRepository):
