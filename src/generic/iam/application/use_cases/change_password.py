@@ -55,7 +55,7 @@ class ChangePassword(Story):
         if user == Nothing:
             state.result = Failure(FailedStatues.USER_NOT_FOUND)
             raise Interrupt
-        state.user = user
+        state.user = user.unwrap()
 
     def check_account_active(self, state: State):
         if not state.user.is_active:

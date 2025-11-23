@@ -68,7 +68,7 @@ class VerifyEmail(Story):
         if user == Nothing:
             state.result = Failure(FailedStatuses.USER_NOT_FOUND)
             raise Interrupt
-        state.user = user
+        state.user = user.unwrap()
 
     def check_not_already_verified(self, state: State):
         if state.user.is_verified:
