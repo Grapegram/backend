@@ -35,7 +35,7 @@ class HashedPassword(BoundedString):
         Returns:
             Algorithm name or 'unknown'
         """
-        hash_str = str(self)
+        hash_str = str(self._value)
 
         if (
             hash_str.startswith("$2a$")
@@ -51,6 +51,9 @@ class HashedPassword(BoundedString):
             return "scrypt"
         else:
             return "unknown"
+
+    def __str__(self) -> str:
+        return self._value
 
     def __repr__(self) -> str:
         return f"HashedPassword(algorithm='{self.algorithm}', length={len(self)})"
