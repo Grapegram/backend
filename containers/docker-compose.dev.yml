@@ -34,7 +34,7 @@ services:
         volumes:
             - grapegram_postgres_data:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready", "-d", "${POSTGRES__NAME}"]
+            test: ["CMD-SHELL", "pg_isready", "-d", "${POSTGRES__DB}"]
             interval: 10s
             timeout: 5s
             retries: 5
