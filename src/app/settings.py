@@ -107,6 +107,15 @@ class JWTSettings(BaseModel):
     password_reset_token_expire_minutes: int = 60  # 1 hour
 
 
+class HashSettings(BaseModel):
+    secret_key: str
+    hash_iterations: int = 600_000
+
+    @property
+    def salt(self) -> bytes:
+        return self.secret_key.encode("utf-8")
+
+
 class SMTPSettings(BaseModel):
     host: str = "mailpit"
     port: int = 1025
@@ -128,6 +137,7 @@ class SMTPSettings(BaseModel):
 class Settings(BaseSettings):
     core: CoreSettings = Field(default_factory=CoreSettings)
     jwt: JWTSettings
+    hash: HashSettings
     smtp: SMTPSettings
     postgres: PostgresSettings
     redis: RedisSettings

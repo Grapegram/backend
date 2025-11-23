@@ -14,7 +14,7 @@ class IAMSettings(BaseModel):
 
     # Password Hashing Settings
     password_hash_iterations: int = 600_000
-    password_salt: bytes | None = None
+    password_salt: bytes
 
     # SMTP Settings
     smtp_host: str = "mailpit"

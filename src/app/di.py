@@ -56,6 +56,8 @@ class SettingsProvider(Provider):
             refresh_token_expire_minutes=settings.jwt.refresh_token_expire_minutes,
             verification_token_expire_minutes=settings.jwt.verification_token_expire_minutes,
             password_reset_token_expire_minutes=settings.jwt.password_reset_token_expire_minutes,
+            password_salt=settings.hash.salt,
+            password_hash_iterations=settings.hash.hash_iterations,
             smtp_host=settings.smtp.host,
             smtp_port=settings.smtp.port,
             smtp_username=settings.smtp.username,
