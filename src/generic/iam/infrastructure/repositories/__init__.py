@@ -1,3 +1,3 @@
-from .user_in_memory import InMemoryUserRepository
+from .user_sqlalchemy import SQLAlchemyUserRepository
 
-__all__ = ["InMemoryUserRepository"]
+__all__ = ["SQLAlchemyUserRepository"]

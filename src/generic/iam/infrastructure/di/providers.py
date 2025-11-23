@@ -1,4 +1,5 @@
 from dishka import Provider, Scope, provide
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
 from src.generic.iam.application.handlers.send_verification_email import SendVerificationEmail
@@ -9,9 +10,7 @@ from src.generic.iam.application.services.user_token import UserTokenService
 from src.generic.iam.application.use_cases.login import Login
 from src.generic.iam.application.use_cases.registration_by_email import RegistrationByEmail
 from src.generic.iam.domain.repositories import UserRepository
-from src.generic.iam.infrastructure.repositories import (
-    InMemoryUserRepository,
-)
+from src.generic.iam.infrastructure.repositories import SQLAlchemyUserRepository
 from src.generic.iam.infrastructure.services import (
     BCryptHasherService,
     JWTTokenService,
@@ -60,11 +59,9 @@ class IAMProvider(Provider):
     def provide_user_token_service(self, token_service: TokenService) -> UserTokenService:
         return UserTokenService(token_service)
 
-    @provide(scope=Scope.APP)
-    def provide_user_repository(self) -> UserRepository:
-        # TODO: Replace with real repository implementation
-        # For production, use: SQLAlchemyUserRepository or similar
-        return InMemoryUserRepository()
+    @provide(scope=Scope.REQUEST)
+    def provide_user_repository(self, session: AsyncSession) -> UserRepository:
+        return SQLAlchemyUserRepository(session)
 
     @provide(scope=Scope.APP)
     def provide_send_verification_email(
