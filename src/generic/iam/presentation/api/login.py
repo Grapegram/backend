@@ -47,6 +47,7 @@ async def login(
                 FailedStatuses.USER_NOT_FOUND: "Invalid credentials",
                 FailedStatuses.INVALID_CREDENTIALS: "Invalid credentials",
                 FailedStatuses.ACCOUNT_DEACTIVATED: "Account has been deactivated",
+                FailedStatuses.ACCOUNT_NOT_VERIFIED: "Account is not verified",
                 FailedStatuses.MISSING_CREDENTIAL: "Credential is required",
                 FailedStatuses.MISSING_PASSWORD: "Password is required",
             }

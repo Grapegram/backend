@@ -18,6 +18,7 @@ class FailedStatuses(str, Enum):
     MISSING_PASSWORD = "MISSING_PASSWORD"
     USER_NOT_FOUND = "USER_NOT_FOUND"
     ACCOUNT_DEACTIVATED = "ACCOUNT_DEACTIVATED"
+    ACCOUNT_NOT_VERIFIED = "ACCOUNT_NOT_VERIFIED"
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
 
 
@@ -35,6 +36,7 @@ class Login(Story):
     I.find_user
     I.check_account_active
     I.verify_password
+    I.check_account_verified
     I.record_login
     I.save_user
     I.generate_auth_token
@@ -56,9 +58,9 @@ class Login(Story):
         if user == Nothing:
             user = await self.user_repo.get_by_username(state.credential)
         if user == Nothing:
-            state.result = Failure(FailedStatuses.INVALID_CREDENTIALS)
+            state.result = Failure(FailedStatuses.USER_NOT_FOUND)
             raise Interrupt
-        state.user = user
+        state.user = user.unwrap()
 
     async def check_account_active(self, state: State):
         if not state.user.is_active:
@@ -68,6 +70,12 @@ class Login(Story):
     async def verify_password(self, state: State):
         if not self.hasher_service.verify(state.password, state.user.hashed_password):
             state.result = Failure(FailedStatuses.INVALID_CREDENTIALS)
+            raise Interrupt
+
+    async def check_account_verified(self, state: State):
+        print("ACCOUNT_NOT_VERIFIED!!!")
+        if not state.user.is_verified:
+            state.result = Failure(FailedStatuses.ACCOUNT_NOT_VERIFIED)
             raise Interrupt
 
     async def record_login(self, state: State):
