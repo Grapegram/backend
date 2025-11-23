@@ -1,7 +1,11 @@
+from collections.abc import AsyncGenerator
+
 from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
 from faststream.redis.annotations import RedisBroker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
+from seedwork.infrastructure.database import get_session
 from seedwork.infrastructure.event_bus import FastStreamEventBus
 from src.app.settings import Settings, get_settings
 from src.generic.iam.infrastructure.di import IAMProvider
@@ -21,6 +25,11 @@ class SettingsProvider(Provider):
     @provide(scope=Scope.APP)
     def provide_redis_bus(self, redis_bus: RedisBroker) -> EventBus:
         return FastStreamEventBus(redis_bus)
+
+    @provide(scope=Scope.REQUEST)
+    async def provide_session(self) -> AsyncGenerator[AsyncSession]:
+        async for session in get_session():
+            yield session
 
     @provide(scope=Scope.APP)
     def provide_iam_settings(self, settings: Settings) -> IAMSettings:
