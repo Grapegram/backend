@@ -250,7 +250,7 @@ class TestEmailEquality:
         """Test not equal to non-string types."""
         email = Email("user@example.com").unwrap()
         assert email != 123
-        assert email != None
+        assert email is not None
         assert email != []
 
 

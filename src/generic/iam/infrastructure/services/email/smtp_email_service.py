@@ -3,7 +3,6 @@ from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
-from typing import Optional
 
 import aiosmtplib
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -63,7 +62,7 @@ class SMTPEmailService:
         to_email: str,
         subject: str,
         html_body: str,
-        text_body: Optional[str] = None,
+        text_body: str | None = None,
     ) -> None:
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
@@ -93,7 +92,9 @@ class SMTPEmailService:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             raise
 
-    async def send_verification_email(self, email: str, username: str, token: str) -> None:
+    async def send_verification_email(
+        self, email: str, username: str, token: str
+    ) -> None:
         verification_url = self.verification_url_template.format(token=token)
 
         context = {
@@ -113,7 +114,9 @@ class SMTPEmailService:
             text_body=text_body,
         )
 
-    async def send_password_reset_email(self, email: str, username: str, token: str) -> None:
+    async def send_password_reset_email(
+        self, email: str, username: str, token: str
+    ) -> None:
         reset_url = self.password_reset_url_template.format(token=token)
 
         context = {

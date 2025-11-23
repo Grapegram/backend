@@ -63,7 +63,9 @@ class ChangePassword(Story):
             raise Interrupt
 
     def verify_current_password(self, state: State):
-        if not self.hasher_service.verify(state.current_password, state.user.hashed_password):
+        if not self.hasher_service.verify(
+            state.current_password, state.user.hashed_password
+        ):
             state.result = Failure(FailedStatues.INVALID_CURRENT_PASSWORD)
             raise Interrupt
 

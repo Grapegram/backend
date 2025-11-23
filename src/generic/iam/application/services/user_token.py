@@ -106,7 +106,9 @@ class VerificationTokenStrategy(TokenTypeStrategy):
         required_fields = ["user_id", "email"]
         missing = [f for f in required_fields if f not in payload_dict]
         if missing:
-            raise ValueError(f"Missing required fields for verification token: {missing}")
+            raise ValueError(
+                f"Missing required fields for verification token: {missing}"
+            )
 
 
 class PasswordResetTokenStrategy(TokenTypeStrategy):
@@ -128,7 +130,9 @@ class PasswordResetTokenStrategy(TokenTypeStrategy):
         required_fields = ["user_id", "email"]
         missing = [f for f in required_fields if f not in payload_dict]
         if missing:
-            raise ValueError(f"Missing required fields for password reset token: {missing}")
+            raise ValueError(
+                f"Missing required fields for password reset token: {missing}"
+            )
 
 
 class RefreshTokenStrategy(TokenTypeStrategy):
@@ -172,14 +176,18 @@ class UserTokenService:
             return strategy()
         return strategy
 
-    def create(self, strategy: type[TokenTypeStrategy] | TokenTypeStrategy, user: User) -> str:
+    def create(
+        self, strategy: type[TokenTypeStrategy] | TokenTypeStrategy, user: User
+    ) -> str:
         strategy_instance = self._get_strategy_instance(strategy)
         payload = strategy_instance.build_payload(user)
         return self.token_service.generate(payload)
 
     def verify(
         self, strategy: type[TokenTypeStrategy] | TokenTypeStrategy, token: str
-    ) -> Result[UserTokenPayload, TokenExpiredError | InvalidTokenError | InvalidTokenTypeError]:
+    ) -> Result[
+        UserTokenPayload, TokenExpiredError | InvalidTokenError | InvalidTokenTypeError
+    ]:
         strategy_instance = self._get_strategy_instance(strategy)
         expected_type = strategy_instance.token_type
 

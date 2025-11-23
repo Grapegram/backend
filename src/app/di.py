@@ -1,6 +1,13 @@
 from collections.abc import AsyncGenerator
 
-from dishka import AsyncContainer, Provider, Scope, from_context, make_async_container, provide
+from dishka import (
+    AsyncContainer,
+    Provider,
+    Scope,
+    from_context,
+    make_async_container,
+    provide,
+)
 from faststream.redis.annotations import RedisBroker
 from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession

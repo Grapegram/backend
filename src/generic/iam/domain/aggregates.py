@@ -70,7 +70,9 @@ class User(AggregateRoot[UserId]):
     ) -> Result[None, NewEmailMustBeDifferentFromPreviousEmail | VOValidationException]:
         email_vo = Email(new_email).unwrap()
         self.check_rule(
-            NewEmailMustBeDifferentFromPreviousEmail(prev_email=self.email, new_email=email_vo)
+            NewEmailMustBeDifferentFromPreviousEmail(
+                prev_email=self.email, new_email=email_vo
+            )
         ).unwrap()
         self.email = email_vo
         self.is_verified = False  # Require re-verification
@@ -85,7 +87,9 @@ class User(AggregateRoot[UserId]):
     @catch_unwrap
     def change_password(
         self, new_hashed_password: str
-    ) -> Result[None, NewPasswordMustBeDifferentFromPreviousPassword | VOValidationException]:
+    ) -> Result[
+        None, NewPasswordMustBeDifferentFromPreviousPassword | VOValidationException
+    ]:
         password_vo = HashedPassword(new_hashed_password)
         self.check_rule(
             NewPasswordMustBeDifferentFromPreviousPassword(

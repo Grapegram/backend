@@ -16,7 +16,9 @@ class GenericUUID(uuid.UUID):
         return cls(int=uuid.uuid4().int)
 
     @classmethod
-    def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler):
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ):
         return handler.generate_schema(uuid.UUID)
 
 

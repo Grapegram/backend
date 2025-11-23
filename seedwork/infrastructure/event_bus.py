@@ -14,7 +14,10 @@ def register_handler(router: RedisRouter, handler: Handler):
     async def fs_handler(event: str, handler_):
         await handler_(event)
 
-    fs_handler.__annotations__ = {"event": handler.handled, "handler_": FromDishka[handler]}
+    fs_handler.__annotations__ = {
+        "event": handler.handled,
+        "handler_": FromDishka[handler],
+    }
     router.subscriber(handler.handled.__tag__)(inject(fs_handler))
 
 

@@ -26,7 +26,11 @@ class IAMSettings(BaseModel):
     smtp_use_tls: bool = False
 
     # Email URL Templates
-    email_verification_url_template: str = "https://grapegram.com/verify-email?token={token}"
-    email_password_reset_url_template: str = "https://grapegram.com/reset-password?token={token}"
+    email_verification_url_template: str = (
+        "https://grapegram.com/verify-email?token={token}"
+    )
+    email_password_reset_url_template: str = (
+        "https://grapegram.com/reset-password?token={token}"
+    )
     email_dashboard_url: str = "https://grapegram.com/dashboard"
     email_support_email: str = "support@grapegram.com"

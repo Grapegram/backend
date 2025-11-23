@@ -96,7 +96,9 @@ class Password(BoundedString):
         # Check for whitespace (optional - some policies disallow it)
         if value.strip() != value:
             return Failure(
-                InvalidPasswordError(reason="Password cannot start or end with whitespace")
+                InvalidPasswordError(
+                    reason="Password cannot start or end with whitespace"
+                )
             )
 
         # Strength requirements

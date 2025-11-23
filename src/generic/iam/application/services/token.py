@@ -14,6 +14,8 @@ class InvalidTokenError(FormattedError):
 
 
 class TokenService(Protocol):
-    def verify(self, token: str) -> Result[dict, TokenExpiredError | InvalidTokenError]: ...
+    def verify(
+        self, token: str
+    ) -> Result[dict, TokenExpiredError | InvalidTokenError]: ...
 
     def generate(self, payload: dict) -> str: ...

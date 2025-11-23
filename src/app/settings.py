@@ -52,7 +52,9 @@ class RedisSettings(BaseModel):
 
     @field_validator("url", mode="before")
     @classmethod
-    def assemble_db_connection(cls, v: str | RedisDsn, values: ValidationInfo) -> RedisDsn:
+    def assemble_db_connection(
+        cls, v: str | RedisDsn, values: ValidationInfo
+    ) -> RedisDsn:
         if isinstance(v, str):
             return RedisDsn(v)
 
@@ -78,7 +80,9 @@ class PostgresSettings(BaseModel):
 
     @field_validator("url", mode="before")
     @classmethod
-    def assemble_db_connection(cls, v: str | PostgresDsn, values: ValidationInfo) -> PostgresDsn:
+    def assemble_db_connection(
+        cls, v: str | PostgresDsn, values: ValidationInfo
+    ) -> PostgresDsn:
         if isinstance(v, str):
             return str(PostgresDsn(v))
 
@@ -114,7 +118,9 @@ class SMTPSettings(BaseModel):
 
     # Email URL Templates
     verification_url_template: str = "https://grapegram.com/verify-email?token={token}"
-    password_reset_url_template: str = "https://grapegram.com/reset-password?token={token}"
+    password_reset_url_template: str = (
+        "https://grapegram.com/reset-password?token={token}"
+    )
     dashboard_url: str = "https://grapegram.com/dashboard"
     support_email: str = "support@grapegram.com"
 

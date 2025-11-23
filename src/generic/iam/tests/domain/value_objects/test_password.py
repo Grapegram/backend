@@ -9,7 +9,6 @@ Comprehensive test suite covering:
 - Security features (masking, representation)
 """
 
-import pytest
 from returns.pipeline import is_successful
 
 from seedwork.domain.value_objects import (
@@ -364,7 +363,7 @@ class TestPasswordSecurity:
         password = result.unwrap()
         assert password != "SecurePass123!"
         assert password != 123
-        assert password != None
+        assert password is not None
 
     def test_password_hashable(self):
         """Test that passwords can be used in sets and dicts."""

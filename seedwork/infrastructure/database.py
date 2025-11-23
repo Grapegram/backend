@@ -29,7 +29,7 @@ class DatabaseSessionFactory:
         return self._session_factory()
 
     @asynccontextmanager
-    async def session(self) -> AsyncGenerator[AsyncSession, None]:
+    async def session(self) -> AsyncGenerator[AsyncSession]:
         async with self._session_factory() as session:
             try:
                 yield session
@@ -58,7 +58,7 @@ def get_session_factory() -> DatabaseSessionFactory:
     return _session_factory
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     factory = get_session_factory()
     async with factory.session() as session:
         yield session

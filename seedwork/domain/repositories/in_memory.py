@@ -57,7 +57,9 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
         # Return a copy to prevent external mutations
         return entity
 
-    async def delete(self, entity_id: TEntityId) -> Result[None, EntityNotFoundException]:
+    async def delete(
+        self, entity_id: TEntityId
+    ) -> Result[None, EntityNotFoundException]:
         """
         Delete an entity from storage.
 
@@ -69,7 +71,9 @@ class InMemoryRepository[TEntityId: GenericUUID, TEntity: AggregateRoot](
         """
         if entity_id not in self._storage:
             return Failure(
-                EntityNotFoundException(entity_id=entity_id, entity_type=type(self).__name__)
+                EntityNotFoundException(
+                    entity_id=entity_id, entity_type=type(self).__name__
+                )
             )
         del self._storage[entity_id]
 

@@ -1,9 +1,7 @@
 import re
 from dataclasses import dataclass
-from typing import Any, ClassVar
+from typing import ClassVar
 
-from pydantic import GetCoreSchemaHandler
-from pydantic_core import core_schema
 from returns.result import Failure, Result, Success
 
 from seedwork.domain.exceptions import VOValidationException
@@ -76,7 +74,9 @@ class Email(ValueObject):
             Success with normalized email string or Failure with InvalidEmailError
         """
         if not email or not isinstance(email, str):
-            return Failure(InvalidEmailError(email=str(email), reason="Email cannot be empty"))
+            return Failure(
+                InvalidEmailError(email=str(email), reason="Email cannot be empty")
+            )
 
         # Normalize: strip whitespace and convert to lowercase
         normalized = Email.normalize(email)
@@ -92,19 +92,25 @@ class Email(ValueObject):
 
         # Check for @ symbol
         if "@" not in normalized:
-            return Failure(InvalidEmailError(email=email, reason="Email must contain @ symbol"))
+            return Failure(
+                InvalidEmailError(email=email, reason="Email must contain @ symbol")
+            )
 
         # Split into local and domain parts
         try:
             local_part, domain_part = normalized.rsplit("@", 1)
         except ValueError:
             return Failure(
-                InvalidEmailError(email=email, reason="Email must have exactly one @ symbol")
+                InvalidEmailError(
+                    email=email, reason="Email must have exactly one @ symbol"
+                )
             )
 
         # Validate local part
         if not local_part:
-            return Failure(InvalidEmailError(email=email, reason="Local part cannot be empty"))
+            return Failure(
+                InvalidEmailError(email=email, reason="Local part cannot be empty")
+            )
 
         if len(local_part) > cls.MAX_LOCAL_LENGTH:
             return Failure(
@@ -116,7 +122,9 @@ class Email(ValueObject):
 
         # Validate domain part
         if not domain_part:
-            return Failure(InvalidEmailError(email=email, reason="Domain part cannot be empty"))
+            return Failure(
+                InvalidEmailError(email=email, reason="Domain part cannot be empty")
+            )
 
         if len(domain_part) > cls.MAX_DOMAIN_LENGTH:
             return Failure(
@@ -128,12 +136,16 @@ class Email(ValueObject):
 
         if "." not in domain_part:
             return Failure(
-                InvalidEmailError(email=email, reason="Domain must contain at least one dot")
+                InvalidEmailError(
+                    email=email, reason="Domain must contain at least one dot"
+                )
             )
 
         # Validate against regex pattern
         if not cls.EMAIL_PATTERN.match(normalized):
-            return Failure(InvalidEmailError(email=email, reason="Invalid email format"))
+            return Failure(
+                InvalidEmailError(email=email, reason="Invalid email format")
+            )
 
         return Success(normalized)
 

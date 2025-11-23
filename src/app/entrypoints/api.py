@@ -46,7 +46,11 @@ def configure_app() -> Litestar:
 
     logging_config = LoggingConfig(
         root={"level": "INFO", "handlers": ["queue_listener"]},
-        formatters={"standard": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
+        formatters={
+            "standard": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            }
+        },
         log_exceptions="always",
     )
     route_handlers = [*iam_routes, handler]

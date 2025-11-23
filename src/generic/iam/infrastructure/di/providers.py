@@ -2,13 +2,17 @@ from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
-from src.generic.iam.application.handlers.send_verification_email import SendVerificationEmail
+from src.generic.iam.application.handlers.send_verification_email import (
+    SendVerificationEmail,
+)
 from src.generic.iam.application.services.email import EmailService
 from src.generic.iam.application.services.hasher import HasherService
 from src.generic.iam.application.services.token import TokenService
 from src.generic.iam.application.services.user_token import UserTokenService
 from src.generic.iam.application.use_cases.login import Login
-from src.generic.iam.application.use_cases.registration_by_email import RegistrationByEmail
+from src.generic.iam.application.use_cases.registration_by_email import (
+    RegistrationByEmail,
+)
 from src.generic.iam.domain.repositories import UserRepository
 from src.generic.iam.infrastructure.repositories import SQLAlchemyUserRepository
 from src.generic.iam.infrastructure.services import (
@@ -56,7 +60,9 @@ class IAMProvider(Provider):
         )
 
     @provide(scope=Scope.APP)
-    def provide_user_token_service(self, token_service: TokenService) -> UserTokenService:
+    def provide_user_token_service(
+        self, token_service: TokenService
+    ) -> UserTokenService:
         return UserTokenService(token_service)
 
     @provide(scope=Scope.REQUEST)
