@@ -1,7 +1,7 @@
 from litestar import Router
 
 from src.generic.iam.presentation.api.login import login
-from src.generic.iam.presentation.api.registeration import register
+from src.generic.iam.presentation.api.registration import register
 
 routes = [
     Router(
@@ -10,7 +10,8 @@ routes = [
             login,
             register,
         ],
-    )
+    ),
 ]
+
 
 __all__ = ["routes"]

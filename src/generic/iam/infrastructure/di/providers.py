@@ -63,7 +63,7 @@ class IAMProvider(Provider):
     def provide_user_repository(self, session: AsyncSession) -> UserRepository:
         return SQLAlchemyUserRepository(session)
 
-    @provide(scope=Scope.APP)
+    @provide(scope=Scope.REQUEST)
     def provide_send_verification_email(
         self,
         user_token_service: UserTokenService,
