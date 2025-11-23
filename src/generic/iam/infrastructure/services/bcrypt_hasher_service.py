@@ -1,5 +1,5 @@
 import logging
-import os
+import secrets
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -23,7 +23,7 @@ class BCryptHasherService:
             salt: Salt for hashing (should be from config in production)
             iterations: Number of iterations for PBKDF2 (default: 600,000)
         """
-        self.salt = salt or os.urandom(16)
+        self.salt = salt or secrets.token_bytes(16)
         self.iterations = iterations
 
     def hash(self, plain_text: str) -> str:
