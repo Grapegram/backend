@@ -25,3 +25,9 @@ prod_down:
 # Tools
 test:
 	make -f scripts/docker_app_makefile test
+migrate:
+	make -f scripts/docker_app_makefile migrate
+migration_create:
+	make -f scripts/docker_app_makefile migration_create MESSAGE="$(MESSAGE)"
+clean_volumes:
+	make -f scripts/docker_app_makefile clean_volumes

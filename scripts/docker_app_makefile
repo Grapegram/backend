@@ -54,4 +54,13 @@ down:
 
 
 test:
-	${DC_DEV} run --rm grapegram_backend_dev pytest .
+	${DC_DEV} run --rm app /app/.venv/bin/python -m pytest .
+
+migrate:
+	${DC_DEV} run --rm app /app/.venv/bin/python -m alembic upgrade head
+
+migration_create:
+	${DC_DEV} run --rm app /app/.venv/bin/python -m alembic revision --autogenerate -m "$(MESSAGE)"
+
+clean_volumes:
+	${DC_DEV} down -v --remove-orphans
