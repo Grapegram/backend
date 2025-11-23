@@ -5,6 +5,8 @@ from dishka.integrations.faststream import setup_dishka as fs_setup_dishka
 from dishka.integrations.litestar import setup_dishka as ls_setup_dishka
 from faststream.redis import RedisBroker
 from litestar import Litestar
+from litestar.channels import ChannelsPlugin
+from litestar.channels.backends.memory import MemoryChannelsBackend
 from litestar.config.cors import CORSConfig
 from litestar.logging.config import LoggingConfig
 from litestar.openapi.config import OpenAPIConfig
@@ -12,14 +14,13 @@ from litestar.openapi.plugins import StoplightRenderPlugin
 
 from seedwork.application.event_bus import EventBus
 from src.app.di import create_container
+from src.app.entrypoints.ws import handler
 from src.app.settings import get_settings
 from src.generic.iam.presentation.api import routes as iam_routes
 from src.generic.iam.presentation.events import routes as iam_event_handlers
 
 
 def configure_app() -> Litestar:
-    async_container = create_container()
-
     cors_config = CORSConfig(
         allow_origins=[
             "http://localhost:5174",
@@ -48,8 +49,14 @@ def configure_app() -> Litestar:
         formatters={"standard": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
         log_exceptions="always",
     )
-    route_handlers = [*iam_routes]
+    route_handlers = [*iam_routes, handler]
     event_handlers = [*iam_event_handlers]
+
+    channels_plugin = ChannelsPlugin(
+        backend=MemoryChannelsBackend(history=200), arbitrary_channels_allowed=True
+    )
+
+    async_container = create_container(channels_plugin)
 
     @asynccontextmanager
     async def lifespan(app: Litestar):
@@ -72,9 +79,11 @@ def configure_app() -> Litestar:
         cors_config=cors_config,
         openapi_config=openapi_config,
         logging_config=logging_config,
+        plugins=[channels_plugin],
     )
 
     ls_setup_dishka(container=async_container, app=app)
+
     return app
 
 

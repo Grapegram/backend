@@ -1,12 +1,15 @@
 from collections.abc import AsyncGenerator
 
-from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
+from dishka import AsyncContainer, Provider, Scope, from_context, make_async_container, provide
 from faststream.redis.annotations import RedisBroker
+from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
+from seedwork.application.notifier import Notifier
 from seedwork.infrastructure.database import get_session
 from seedwork.infrastructure.event_bus import FastStreamEventBus
+from seedwork.infrastructure.notifier import LitestarNotifier
 from src.app.settings import Settings, get_settings
 from src.generic.iam.infrastructure.di import IAMProvider
 from src.generic.iam.infrastructure.settings import IAMSettings
@@ -31,6 +34,12 @@ class SettingsProvider(Provider):
         async for session in get_session():
             yield session
 
+    channels_plugin = from_context(provides=ChannelsPlugin, scope=Scope.APP)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_notifier(self, channels: ChannelsPlugin) -> Notifier:
+        return LitestarNotifier(channels)
+
     @provide(scope=Scope.APP)
     def provide_iam_settings(self, settings: Settings) -> IAMSettings:
         return IAMSettings(
@@ -54,8 +63,11 @@ class SettingsProvider(Provider):
         )
 
 
-def create_container() -> AsyncContainer:
+def create_container(channels_plugin: ChannelsPlugin) -> AsyncContainer:
     return make_async_container(
         SettingsProvider(),
         IAMProvider(),
+        context={
+            ChannelsPlugin: channels_plugin,
+        },
     )
