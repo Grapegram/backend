@@ -31,3 +31,8 @@ migration_create:
 	make -f scripts/docker_app_makefile migration_create MESSAGE="$(MESSAGE)"
 clean_volumes:
 	make -f scripts/docker_app_makefile clean_volumes
+
+lint:
+	./.venv/bin/python -m ruff check .
+format:
+	./.venv/bin/python -m ruff check --select I --fix . && ./.venv/bin/python -m ruff format .
