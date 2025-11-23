@@ -7,7 +7,7 @@ from src.generic.iam.infrastructure.models import UserModel
 @to_user.instance(UserModel)
 def _to_user_from_model(model: UserModel) -> User:
     return User(
-        id=UserId(model.id),
+        id=UserId(str(model.id)),
         email=Email.from_raw(model.email),
         username=model.username,
         hashed_password=HashedPassword.from_raw(model.hashed_password),
