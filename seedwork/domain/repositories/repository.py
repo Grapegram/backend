@@ -4,7 +4,7 @@ from returns.maybe import Maybe
 from returns.result import Result
 
 from seedwork.domain.entities import AggregateRoot, EntityId
-from seedwork.domain.repositories.exceptions import EntityNotFoundException, RepositoryException
+from seedwork.domain.repositories.exceptions import EntityNotFoundException
 
 TEntity = TypeVar("TEntity", bound=AggregateRoot, covariant=True)
 
