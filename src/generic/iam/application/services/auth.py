@@ -38,6 +38,6 @@ class AuthService:
 
         user = await self.user_repository.get(payload.user_id)
         if is_successful(user) and user.unwrap().is_active:
-            return user
+            return Success(user.unwrap())
 
         return Failure(ValueError("Invalid token"))
