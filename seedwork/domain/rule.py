@@ -1,16 +1,11 @@
-from dataclasses import dataclass
 from typing import Protocol
 
 
-@dataclass
 class BusinessRule(Protocol):
     """This is a base class for implementing domain rules"""
 
-    # This is an error message that broken rule reports back
-    __message: str = "Business rule is broken"
-
     def get_message(self) -> str:
-        return self.__message
+        return self.__doc__
 
     def is_broken(self) -> bool: ...
 

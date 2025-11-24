@@ -1,10 +1,13 @@
+from dataclasses import dataclass
+
 from seedwork.domain.rule import BusinessRule
 
 from .value_objects import Email, HashedPassword
 
 
+@dataclass
 class NewPasswordMustBeDifferentFromPreviousPassword(BusinessRule):
-    __message = "The new password must be different from the previous password."
+    """The new password must be different from the previous password."""
 
     prev_password: HashedPassword
     new_password: HashedPassword
@@ -13,8 +16,9 @@ class NewPasswordMustBeDifferentFromPreviousPassword(BusinessRule):
         return self.prev_password == self.new_password
 
 
+@dataclass
 class NewEmailMustBeDifferentFromPreviousEmail(BusinessRule):
-    __message = "The new email must be different from the previous email."
+    """The new email must be different from the previous email."""
 
     prev_email: Email
     new_email: Email
