@@ -70,6 +70,7 @@ source = { editable = "." }
 dependencies = [
     { name = "aiosmtplib" },
     { name = "alembic" },
+    { name = "anyio" },
     { name = "asyncpg" },
     { name = "classes" },
     { name = "cryptography" },
@@ -101,6 +102,7 @@ dev = [
 requires-dist = [
     { name = "aiosmtplib", specifier = ">=5.0.0" },
     { name = "alembic", specifier = ">=1.17.2" },
+    { name = "anyio", specifier = ">=4.11.0" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "classes", specifier = ">=0.4.1" },
     { name = "cryptography", specifier = ">=45.0.3" },
