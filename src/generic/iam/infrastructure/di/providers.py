@@ -13,6 +13,7 @@ from src.generic.iam.application.use_cases.login import Login
 from src.generic.iam.application.use_cases.registration_by_email import (
     RegistrationByEmail,
 )
+from src.generic.iam.application.use_cases.verification_email import VerifyEmail
 from src.generic.iam.domain.repositories import UserRepository
 from src.generic.iam.infrastructure.repositories import SQLAlchemyUserRepository
 from src.generic.iam.infrastructure.services import (
@@ -106,4 +107,15 @@ class IAMProvider(Provider):
             user_repo=user_repo,
             hasher_service=hasher_service,
             user_token_service=user_token_service,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_verify_email_story(
+        self,
+        user_token_service: UserTokenService,
+        user_repo: UserRepository,
+    ) -> VerifyEmail:
+        return VerifyEmail(
+            user_token_service=user_token_service,
+            user_repo=user_repo,
         )

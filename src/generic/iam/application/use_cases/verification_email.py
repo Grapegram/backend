@@ -44,7 +44,7 @@ class VerifyEmail(Story):
         # result
         result: Result[None, FailedStatuses]
 
-    def verify_and_parse_token(self, state: State):
+    async def verify_and_parse_token(self, state: State):
         token_result = self.user_token_service.verify(
             VerificationTokenStrategy, state.verification_token
         )
@@ -70,12 +70,12 @@ class VerifyEmail(Story):
             raise Interrupt
         state.user = user.unwrap()
 
-    def check_not_already_verified(self, state: State):
+    async def check_not_already_verified(self, state: State):
         if state.user.is_verified:
             state.result = Failure(FailedStatuses.ALREADY_VERIFIED)
             raise Interrupt
 
-    def mark_as_verified(self, state: State):
+    async def mark_as_verified(self, state: State):
         state.user.verify_email()
 
     async def save_user(self, state: State):
