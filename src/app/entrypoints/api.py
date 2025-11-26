@@ -23,7 +23,7 @@ from src.generic.iam.presentation.events import routes as iam_event_handlers
 def configure_app() -> Litestar:
     cors_config = CORSConfig(
         allow_origins=[
-            "http://localhost:5174",
+            "http://localhost:5173",
             "http://localhost:8128",
             "https://grapegram-api.serveo.net",
             "https://deploy-preview-8--dev-grapegram-web.netlify.app",
