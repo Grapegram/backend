@@ -5,6 +5,7 @@ from seedwork.application.event_bus import EventBus
 from src.generic.iam.application.handlers.send_verification_email import (
     SendVerificationEmail,
 )
+from src.generic.iam.application.services.auth import AuthService
 from src.generic.iam.application.services.email import EmailService
 from src.generic.iam.application.services.hasher import HasherService
 from src.generic.iam.application.services.token import TokenService
@@ -59,6 +60,12 @@ class IAMProvider(Provider):
             dashboard_url=settings.email_dashboard_url,
             support_email=settings.email_support_email,
         )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_auth(
+        self, user_repository: UserRepository, token_service: UserTokenService
+    ) -> AuthService:
+        return AuthService(user_repository=user_repository, token_service=token_service)
 
     @provide(scope=Scope.APP)
     def provide_user_token_service(

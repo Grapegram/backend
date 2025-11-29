@@ -18,7 +18,7 @@ class SendVerificationEmail(Handler):
     user_token_service: UserTokenService
     email_service: EmailService
 
-    async def handler(self, event: UserCreated) -> None:
+    async def handle(self, event: UserCreated) -> None:
         verification_token = self.user_token_service.create(
             VerificationTokenStrategy,
             VerificationTokenPayload(user_id=str(event.user_id), email=event.email),

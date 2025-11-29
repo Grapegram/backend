@@ -14,7 +14,7 @@ class Query(Handlable):
 class Handler[T: Handlable](Protocol):
     handled: type[T]
 
-    async def handler(self, handled: T) -> Any: ...
+    async def handle(self, handled: T) -> Any: ...
 
     def __call__(self, handled: T):
-        return self.handler(handled)
+        return self.handle(handled)

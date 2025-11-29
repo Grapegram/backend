@@ -18,6 +18,7 @@ from seedwork.infrastructure.database import get_session
 from seedwork.infrastructure.event_bus import FastStreamEventBus
 from seedwork.infrastructure.notifier import LitestarNotifier
 from src.app.settings import Settings, get_settings
+from src.core.chat.infrastructure.di.providers import ChatProvider
 from src.generic.iam.infrastructure.di import IAMProvider
 from src.generic.iam.infrastructure.settings import IAMSettings
 
@@ -76,6 +77,7 @@ def create_container(channels_plugin: ChannelsPlugin) -> AsyncContainer:
     return make_async_container(
         SettingsProvider(),
         IAMProvider(),
+        ChatProvider(),
         context={
             ChannelsPlugin: channels_plugin,
         },
