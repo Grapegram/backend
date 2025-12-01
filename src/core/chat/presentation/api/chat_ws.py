@@ -32,8 +32,8 @@ async def live_chat(
 
         async def handle_stream() -> AsyncGenerator[str]:
             async with channels.start_subscription([channel_name]) as subscriber:
-                while not should_stop.is_set():
-                    async for message in subscriber.iter_events():
+                async for message in subscriber.iter_events():
+                    while not should_stop.is_set():
                         if is_authorized:
                             await socket.send_json(
                                 {
@@ -43,12 +43,12 @@ async def live_chat(
                                     else {"message": message},
                                 }
                             )
-                    yield
+                        yield
 
         async def handle_receive() -> Any:
             nonlocal is_authorized
             async for message in socket.iter_json():
-                action = message.get("action")
+                action = message.get("action", "")
 
                 if action == "authorize":
                     token = message.get("token")
