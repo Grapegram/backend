@@ -38,3 +38,13 @@ class UserActivated(DomainEvent):
 
     user_id: UserId
     activated_at: datetime
+
+
+@dataclass(frozen=True)
+class UserAvatarChanged(DomainEvent):
+    """Event raised when a user's avatar is changed"""
+
+    user_id: UserId
+    old_avatar: str | None
+    new_avatar: str | None
+    changed_at: datetime

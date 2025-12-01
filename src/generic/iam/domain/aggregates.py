@@ -9,7 +9,13 @@ from seedwork.domain.exceptions import VOValidationException
 from seedwork.domain.services.clock import utcnow
 from seedwork.returns import catch_unwrap
 
-from .events import UserActivated, UserCreated, UserDeactivated, UserUpdated
+from .events import (
+    UserActivated,
+    UserAvatarChanged,
+    UserCreated,
+    UserDeactivated,
+    UserUpdated,
+)
 from .rules import (
     NewEmailMustBeDifferentFromPreviousEmail,
     NewPasswordMustBeDifferentFromPreviousPassword,
@@ -29,6 +35,7 @@ class User(AggregateRoot[UserId]):
     email: Email
     username: str
     hashed_password: HashedPassword
+    avatar: str | None = None
     is_active: bool = True
     is_verified: bool = False
     last_login_at: datetime | None = None
@@ -128,6 +135,19 @@ class User(AggregateRoot[UserId]):
             UserActivated(
                 user_id=self.id,
                 activated_at=self.updated_at,
+            )
+        )
+
+    def change_avatar(self, new_avatar: str | None) -> None:
+        old_avatar = self.avatar
+        self.avatar = new_avatar
+
+        self.register_event(
+            UserAvatarChanged(
+                user_id=self.id,
+                old_avatar=old_avatar,
+                new_avatar=new_avatar,
+                changed_at=utcnow(),
             )
         )
 
