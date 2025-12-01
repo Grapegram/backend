@@ -2,21 +2,32 @@ from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
+from seedwork.application.object_storage import ObjectStorage
+from src.generic.iam.application.contracts.email import EmailService
+from src.generic.iam.application.contracts.hasher import HasherService
+from src.generic.iam.application.contracts.repositories import UserReadRepository
+from src.generic.iam.application.contracts.token import TokenService
+from src.generic.iam.application.handlers.queries import (
+    GetCurrentUser,
+    GetUsersList,
+)
 from src.generic.iam.application.handlers.send_verification_email import (
     SendVerificationEmail,
 )
 from src.generic.iam.application.services.auth import AuthService
-from src.generic.iam.application.services.email import EmailService
-from src.generic.iam.application.services.hasher import HasherService
-from src.generic.iam.application.services.token import TokenService
+from src.generic.iam.application.services.user import UserService
 from src.generic.iam.application.services.user_token import UserTokenService
+from src.generic.iam.application.use_cases.change_user_avatar import ChangeUserAvatar
 from src.generic.iam.application.use_cases.login import Login
 from src.generic.iam.application.use_cases.registration_by_email import (
     RegistrationByEmail,
 )
 from src.generic.iam.application.use_cases.verification_email import VerifyEmail
 from src.generic.iam.domain.repositories import UserRepository
-from src.generic.iam.infrastructure.repositories import SQLAlchemyUserRepository
+from src.generic.iam.infrastructure.repositories import (
+    SQLAlchemyUserReadRepository,
+    SQLAlchemyUserRepository,
+)
 from src.generic.iam.infrastructure.services import (
     BCryptHasherService,
     JWTTokenService,
@@ -73,9 +84,33 @@ class IAMProvider(Provider):
     ) -> UserTokenService:
         return UserTokenService(token_service)
 
+    @provide(scope=Scope.APP)
+    def provide_user_service(self, object_sotrage: ObjectStorage) -> UserService:
+        return UserService(object_storage=object_sotrage)
+
     @provide(scope=Scope.REQUEST)
     def provide_user_repository(self, session: AsyncSession) -> UserRepository:
         return SQLAlchemyUserRepository(session)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_user_read_repository(
+        self, session: AsyncSession, object_storage: ObjectStorage
+    ) -> UserReadRepository:
+        return SQLAlchemyUserReadRepository(session, object_storage)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_get_current_user_handler(
+        self,
+        user_read_repo: UserReadRepository,
+    ) -> GetCurrentUser:
+        return GetCurrentUser(user_read_repo=user_read_repo)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_get_users_list_handler(
+        self,
+        user_read_repo: UserReadRepository,
+    ) -> GetUsersList:
+        return GetUsersList(user_read_repo=user_read_repo)
 
     @provide(scope=Scope.REQUEST)
     def provide_send_verification_email(
@@ -125,4 +160,17 @@ class IAMProvider(Provider):
         return VerifyEmail(
             user_token_service=user_token_service,
             user_repo=user_repo,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_change_user_avatar_story(
+        self,
+        user_repo: UserRepository,
+        user_service: UserService,
+        event_bus: EventBus,
+    ) -> ChangeUserAvatar:
+        return ChangeUserAvatar(
+            user_repo=user_repo,
+            user_service=user_service,
+            event_bus=event_bus,
         )

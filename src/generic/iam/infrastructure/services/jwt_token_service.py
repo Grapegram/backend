@@ -5,7 +5,7 @@ from typing import Any
 import jwt
 from returns.result import Failure, Result, Success
 
-from src.generic.iam.application.services.token import (
+from ...application.contracts.token import (
     InvalidTokenError,
     TokenExpiredError,
 )
