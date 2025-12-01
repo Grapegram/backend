@@ -16,6 +16,8 @@ services:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+            kafka:
+                condition: service_healthy
             minio:
                 condition: service_healthy
             mailpit:
@@ -151,6 +153,62 @@ services:
             start_period: 10s
         volumes:
             - grapegram_s3_data:/data
+        networks:
+            - app-network
+
+    kafka:
+        image: apache/kafka:latest
+        container_name: grapegram_kafka_dev
+        restart: unless-stopped
+        ports:
+            - "9092:9092"
+            - "9093:9093"
+        environment:
+            KAFKA_NODE_ID: 1
+            KAFKA_PROCESS_ROLES: broker,controller
+            KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9094,PLAINTEXT_HOST://0.0.0.0:9093
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9094
+            KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+            CLUSTER_ID: grapegram-kafka-cluster-1
+        volumes:
+            - grapegram_kafka_data:/var/lib/kafka/data
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "/opt/kafka/bin/kafka-broker-api-versions.sh",
+                    "--bootstrap-server",
+                    "localhost:9092",
+                ]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+            start_period: 30s
+        networks:
+            - app-network
+
+    kafka-ui:
+        image: provectuslabs/kafka-ui:latest
+        container_name: grapegram_kafka_ui_dev
+        restart: unless-stopped
+        ports:
+            - "9080:8080"
+        environment:
+            KAFKA_CLUSTERS_0_NAME: local
+            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+            DYNAMIC_CONFIG_ENABLED: "true"
+        networks:
+            - app-network
+        depends_on:
+            kafka:
+                condition: service_healthy
 
 volumes:
     grapegram_postgres_data:
@@ -158,6 +216,7 @@ volumes:
     grapegram_redis_data:
     grapegram_redis_insight_data:
     grapegram_s3_data:
+    grapegram_kafka_data:
 
 networks:
     app-network:

@@ -10,6 +10,11 @@ CONTAINERS := ${PROJECT_DIR}/containers
 ENV_FILE ?= .env
 ENV_FILE := ${ENV_FOLDER}/${ENV_FILE}
 
+# Fallback to .env.example if ENV_FILE doesn't exist
+ifeq (,$(wildcard $(ENV_FILE)))
+    ENV_FILE := ${ENV_FOLDER}/.env.example
+endif
+
 DC_PROD = docker compose -f ${CONTAINERS}/docker-compose.yml -f ${CONTAINERS}/docker-compose.prod.yml
 DC_DEV = docker compose -f ${CONTAINERS}/docker-compose.yml -f ${CONTAINERS}/docker-compose.dev.yml
 
@@ -27,10 +32,10 @@ export POSTGRES__USER
 export POSTGRES__PASSWORD
 
 
-prod_up:
+prod_up_fg:
 	${DC_PROD} up
 
-prod_up_bg:
+prod_up:
 	${DC_PROD} up -d
 
 prod_build:
@@ -40,10 +45,10 @@ prod_down:
 	${DC_PROD} down --remove-orphans
 
 
-up:
+up_fg:
 	${DC_DEV} up
 
-up_bg:
+up:
 	${DC_DEV} up -d
 
 build:
@@ -53,11 +58,17 @@ down:
 	${DC_DEV} down --remove-orphans
 
 
+logs:
+	${DC_DEV} logs app
+
 test:
 	${DC_DEV} run --rm app /app/.venv/bin/python -m pytest .
 
 migrate:
 	${DC_DEV} run --rm app /app/.venv/bin/python -m alembic upgrade head
+
+downgrade:
+	${DC_DEV} run --rm app /app/.venv/bin/python -m alembic downgrade -1
 
 migration_create:
 	${DC_DEV} run --rm app /app/.venv/bin/python -m alembic revision --autogenerate -m "$(MESSAGE)"

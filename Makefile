@@ -1,32 +1,38 @@
+.DEFAULT_GOAL := up
+
 ENV_FILE = .env
 
 export ENV_FILE
 
 # Dev
+up_fg:
+	make -f scripts/docker_app_makefile up_fg
 up:
 	make -f scripts/docker_app_makefile up
-up_bg:
-	make -f scripts/docker_app_makefile up_bg
 build:
 	make -f scripts/docker_app_makefile build
 down:
 	make -f scripts/docker_app_makefile down
 
 # Prod
+prod_up_fg:
+	make -f scripts/docker_app_makefile prod_up_fg
 prod_up:
 	make -f scripts/docker_app_makefile prod_up
-prod_up_bg:
-	make -f scripts/docker_app_makefile prod_up_bg
 prod_build:
 	make -f scripts/docker_app_makefile prod_build
 prod_down:
 	make -f scripts/docker_app_makefile prod_down
 
 # Tools
+logs:
+	make -f scripts/docker_app_makefile logs
 test:
 	make -f scripts/docker_app_makefile test
 migrate:
 	make -f scripts/docker_app_makefile migrate
+downgrade:
+	make -f scripts/docker_app_makefile downgrade
 migration_create:
 	make -f scripts/docker_app_makefile migration_create MESSAGE="$(MESSAGE)"
 clean_volumes:
