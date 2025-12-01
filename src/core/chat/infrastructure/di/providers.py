@@ -3,14 +3,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
 from seedwork.application.notifier import Notifier
+from seedwork.application.object_storage import ObjectStorage
 from src.core.chat.application.contracts.auth import AuthService
 from src.core.chat.application.contracts.repositories import ChatReadRepository
 from src.core.chat.application.handlers.events import ExposeMessageSentEvent
-from src.core.chat.application.handlers.queries import LoadMessagesFromChat
+from src.core.chat.application.handlers.queries import (
+    GetChatsList,
+    LoadMessagesFromChat,
+)
+from src.core.chat.application.services.chat import ChatService
 from src.core.chat.application.use_cases import (
     AddMember,
     AddReaction,
     ArchiveChat,
+    ChangeChatAvatar,
     ChangeChatTitle,
     ChangeMemberRole,
     CreateChat,
@@ -33,6 +39,10 @@ from src.generic.iam.application.services.auth import AuthService as IAMAuthServ
 
 
 class ChatProvider(Provider):
+    @provide(scope=Scope.APP)
+    def provide_chat_service(self, object_sotrage: ObjectStorage) -> ChatService:
+        return ChatService(object_storage=object_sotrage)
+
     @provide(scope=Scope.REQUEST)
     def provide_chat_repository(self, session: AsyncSession) -> ChatRepository:
         return SQLAlchemyChatRepository(session)
@@ -44,6 +54,13 @@ class ChatProvider(Provider):
     @provide(scope=Scope.REQUEST)
     def provide_chat_read_repository(self, session: AsyncSession) -> ChatReadRepository:
         return SQLAlchemyChatReadRepository(session)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_get_chats_list_handler(
+        self,
+        chat_read_repo: ChatReadRepository,
+    ) -> GetChatsList:
+        return GetChatsList(chat_read_repo=chat_read_repo)
 
     @provide(scope=Scope.REQUEST)
     def provide_load_messages_from_chat_handler(
@@ -86,6 +103,19 @@ class ChatProvider(Provider):
         return ChangeChatTitle(
             chat_repo=chat_repo,
             event_bus=event_bus,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_change_chat_avatar_story(
+        self,
+        chat_repo: ChatRepository,
+        event_bus: EventBus,
+        chat_service: ChatService,
+    ) -> ChangeChatAvatar:
+        return ChangeChatAvatar(
+            chat_repo=chat_repo,
+            event_bus=event_bus,
+            chat_service=chat_service,
         )
 
     @provide(scope=Scope.REQUEST)

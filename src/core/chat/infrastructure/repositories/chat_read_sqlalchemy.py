@@ -2,10 +2,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.chat.application.contracts.repositories import ChatReadRepository
-from src.core.chat.application.handlers.queries.load_messages_from_chat import (
+from src.core.chat.application.contracts.repositories.chat_read_repository import (
+    ChatDTO,
     MessageDTO,
 )
 from src.core.chat.infrastructure.models import MessageModel
+from src.core.chat.infrastructure.models.chat import ChatModel, MemberModel
 
 
 class SQLAlchemyChatReadRepository(ChatReadRepository):
@@ -50,3 +52,26 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
         )
         result = await self._session.execute(stmt)
         return result.scalar_one()
+
+    async def get_chats_by_member_user_id(self, user_id: str) -> list[ChatDTO]:
+        stmt = (
+            select(ChatModel)
+            .join(MemberModel, ChatModel.id == MemberModel.chat_id)
+            .where(MemberModel.user_id == user_id)
+            .order_by(ChatModel.updated_at.desc())
+        )
+        result = await self._session.execute(stmt)
+        models = result.scalars().all()
+
+        return [
+            ChatDTO(
+                id=str(model.id),
+                title=model.title,
+                avatar=model.avatar,
+                is_archived=model.is_archived,
+                archived_at=model.archived_at,
+                created_at=model.created_at,
+                updated_at=model.updated_at,
+            )
+            for model in models
+        ]
