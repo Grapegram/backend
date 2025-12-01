@@ -1,6 +1,7 @@
 from .add_member import AddMember
 from .add_reaction import AddReaction
 from .archive_chat import ArchiveChat
+from .change_chat_avatar import ChangeChatAvatar
 from .change_chat_title import ChangeChatTitle
 from .change_member_role import ChangeMemberRole
 from .create_chat import CreateChat
@@ -15,6 +16,7 @@ from .unarchive_chat import UnarchiveChat
 __all__ = [
     "CreateChat",
     "ChangeChatTitle",
+    "ChangeChatAvatar",
     "AddMember",
     "RemoveMember",
     "ChangeMemberRole",
