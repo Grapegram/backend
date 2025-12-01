@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from dishka.integrations.faststream import setup_dishka as fs_setup_dishka
 from dishka.integrations.litestar import setup_dishka as ls_setup_dishka
-from faststream.redis import RedisBroker
+from faststream.kafka import KafkaBroker
 from litestar import Litestar
 from litestar.channels import ChannelsPlugin
 from litestar.channels.backends.memory import MemoryChannelsBackend
@@ -69,7 +69,11 @@ def configure_app() -> Litestar:
 
     logging_config = LoggingConfig(
         root={"level": "INFO", "handlers": ["queue_listener"]},
-        formatters={"standard": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
+        formatters={
+            "standard": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            }
+        },
         log_exceptions="always",
     )
     route_handlers = [*iam_routes, *chat_routes, handler]
@@ -84,8 +88,8 @@ def configure_app() -> Litestar:
     @asynccontextmanager
     async def lifespan(app: Litestar):
         container = app.state.dishka_container
-        redis_broker: RedisBroker = await container.get(RedisBroker)
-        fs_setup_dishka(container=container, broker=redis_broker)
+        broker: KafkaBroker = await container.get(KafkaBroker)
+        fs_setup_dishka(container=container, broker=broker)
 
         event_bus: EventBus = await container.get(EventBus)
         event_bus.include_routes(event_handlers)

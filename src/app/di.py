@@ -8,16 +8,18 @@ from dishka import (
     make_async_container,
     provide,
 )
-from faststream.redis.annotations import RedisBroker
+from faststream.kafka import KafkaBroker
 from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
 from seedwork.application.notifier import Notifier
+from seedwork.application.object_storage import ObjectStorage
 from seedwork.infrastructure.database import get_session
 from seedwork.infrastructure.event_bus import FastStreamEventBus
 from seedwork.infrastructure.notifier import LitestarNotifier
-from src.app.settings import Settings, get_settings
+from seedwork.infrastructure.storage import AzureBlobStorage, S3ObjectStorage
+from src.app.settings import Settings, StorageType, get_settings
 from src.core.chat.infrastructure.di.providers import ChatProvider
 from src.generic.iam.infrastructure.di import IAMProvider
 from src.generic.iam.infrastructure.settings import IAMSettings
@@ -29,13 +31,36 @@ class SettingsProvider(Provider):
         return get_settings()
 
     @provide(scope=Scope.APP)
-    def provide_event_bus(self, settings: Settings) -> RedisBroker:
-        print(settings.redis.url)
-        return RedisBroker(settings.redis.url)
+    def provide_kafka_broker(self, settings: Settings) -> KafkaBroker:
+        return KafkaBroker(f"{settings.kafka.host}:{settings.kafka.port}")
 
     @provide(scope=Scope.APP)
-    def provide_redis_bus(self, redis_bus: RedisBroker) -> EventBus:
-        return FastStreamEventBus(redis_bus)
+    def provide_event_bus(self, kafka_broker: KafkaBroker) -> EventBus:
+        return FastStreamEventBus(kafka_broker)
+
+    @provide(scope=Scope.APP)
+    def provide_object_storage(self, settings: Settings) -> ObjectStorage:
+        if settings.storage_type == StorageType.S3:
+            return S3ObjectStorage(
+                endpoint_url=settings.s3.endpoint_url,
+                access_key_id=settings.s3.access_key_id,
+                secret_access_key=settings.s3.secret_access_key,
+                region_name=settings.s3.region_name,
+                public_url=settings.s3.public_url,
+                use_ssl=settings.s3.use_ssl,
+                default_bucket=settings.s3.bucket_name,
+            )
+        elif settings.storage_type == StorageType.AZURE:
+            return AzureBlobStorage(
+                connection_string=settings.azure.connection_string,
+                account_name=settings.azure.account_name,
+                account_key=settings.azure.account_key,
+                container_name=settings.azure.container_name,
+                public_url=settings.azure.public_url,
+                default_bucket=settings.azure.bucket_name,
+            )
+        else:
+            raise ValueError(f"Unsupported storage type: {settings.storage_type}")
 
     @provide(scope=Scope.REQUEST)
     async def provide_session(self) -> AsyncGenerator[AsyncSession]:

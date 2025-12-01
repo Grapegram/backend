@@ -1,11 +1,12 @@
+from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Unpack
 
-from envparse import Env
 from pydantic import (
     BaseModel,
     Field,
+    KafkaDsn,
     PostgresDsn,
     RedisDsn,
     ValidationInfo,
@@ -63,6 +64,32 @@ class RedisSettings(BaseModel):
                 scheme=values.data.get("driver"),
                 username=values.data.get("user"),
                 password=values.data.get("password"),
+                host=values.data.get("host"),
+                port=values.data.get("port"),
+            )
+        )
+
+
+class KafkaSettings(BaseModel):
+    host: str
+    port: int
+    client_id: str
+    group_id: str
+    auto_offset_reset: str = "earliest"
+    enable_auto_commit: bool = True
+    url: str = Field(_sentinel, validate_default=True)
+
+    @field_validator("url", mode="before")
+    @classmethod
+    def assemble_kafka_url(cls, v: str, values: ValidationInfo) -> str:
+        if isinstance(v, str):
+            return str(KafkaDsn(v))
+
+        return str(
+            KafkaDsn.build(
+                scheme="kafka",
+                # username=values.data.get("user"),
+                # password=values.data.get("password"),
                 host=values.data.get("host"),
                 port=values.data.get("port"),
             )
@@ -134,20 +161,44 @@ class SMTPSettings(BaseModel):
     support_email: str = "support@grapegram.com"
 
 
+class StorageType(str, Enum):
+    S3 = "s3"
+    AZURE = "azure"
+
+
+class S3Settings(BaseModel):
+    endpoint_url: str = "http://localhost:9000"
+    access_key_id: str = "admin"
+    secret_access_key: str = "password123"
+    region_name: str = "us-east-1"
+    bucket_name: str = "grapegram"
+    public_url: str = "http://localhost:9000"
+    use_ssl: bool = False
+
+
+class AzureSettings(BaseModel):
+    connection_string: str | None = None
+    account_name: str | None = None
+    account_key: str | None = None
+    container_name: str = "grapegram"
+    public_url: str | None = None
+
+
 class Settings(BaseSettings):
     core: CoreSettings = Field(default_factory=CoreSettings)
     jwt: JWTSettings
     hash: HashSettings
     smtp: SMTPSettings
+    storage_type: StorageType = StorageType.S3
+    s3: S3Settings = Field(default_factory=S3Settings)
+    azure: AzureSettings = Field(default_factory=AzureSettings)
     postgres: PostgresSettings
     redis: RedisSettings
+    kafka: KafkaSettings
 
     model_config = get_model_config()
 
 
 @lru_cache
 def get_settings() -> Settings:
-    env = Env()
-    env.read_envfile(PROJECT_FOLDER / "env" / ".env")
-
     return Settings()
