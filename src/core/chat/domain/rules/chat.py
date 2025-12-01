@@ -22,6 +22,16 @@ class OnlyAdminCanChangeChatTitle(BusinessRule):
 
 
 @dataclass
+class OnlyAdminCanChangeChatAvatar(BusinessRule):
+    """Only admins or owners can change the chat avatar."""
+
+    member: Member
+
+    def is_broken(self) -> bool:
+        return not self.member.has_admin_privileges()
+
+
+@dataclass
 class OnlyAdminCanAddMembers(BusinessRule):
     """Only admins or owners can add members to the chat."""
 

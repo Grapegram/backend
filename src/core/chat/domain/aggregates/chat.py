@@ -12,6 +12,7 @@ from seedwork.returns import catch_unwrap
 from ..entities import Member, MemberRole
 from ..events import (
     ChatArchived,
+    ChatAvatarChanged,
     ChatCreated,
     ChatTitleChanged,
     ChatUnarchived,
@@ -24,6 +25,7 @@ from ..rules.chat import (
     ChatMustHaveAtLeastOneMember,
     MemberMustNotAlreadyExist,
     OnlyAdminCanAddMembers,
+    OnlyAdminCanChangeChatAvatar,
     OnlyAdminCanChangeChatTitle,
     OnlyAdminCanRemoveMembers,
     OnlyOwnerCanChangeOwnership,
@@ -42,6 +44,7 @@ class Chat(AggregateRoot[ChatId]):
 
     id: ChatId
     title: ChatTitle
+    avatar: str | None = None
     is_archived: bool = False
     archived_at: datetime | None = None
     members: list[Member] = field(default_factory=list)
@@ -111,6 +114,30 @@ class Chat(AggregateRoot[ChatId]):
                 chat_id=self.id,
                 old_title=old_title,
                 new_title=str(title_vo),
+                changed_by=changed_by,
+                changed_at=utcnow(),
+            )
+        )
+
+    @catch_unwrap
+    def change_avatar(
+        self, new_avatar: str | None, changed_by: str
+    ) -> Result[None, VOValidationException]:
+        member = self._get_member_by_user_id(changed_by)
+        if not member:
+            raise ValueError(f"User {changed_by} is not a member of this chat")
+
+        self.check_rule(OnlyAdminCanChangeChatAvatar(member=member)).unwrap()
+
+        avatar_vo = str.create(new_avatar).unwrap() if new_avatar else None
+        old_avatar = str(self.avatar) if self.avatar else None
+        self.avatar = avatar_vo
+
+        self.register_event(
+            ChatAvatarChanged(
+                chat_id=self.id,
+                old_avatar=old_avatar,
+                new_avatar=new_avatar,
                 changed_by=changed_by,
                 changed_at=utcnow(),
             )

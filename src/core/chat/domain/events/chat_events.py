@@ -84,3 +84,14 @@ class ChatUnarchived(DomainEvent):
     chat_id: ChatId
     unarchived_by: str
     unarchived_at: datetime
+
+
+@dataclass(frozen=True)
+class ChatAvatarChanged(DomainEvent):
+    """Event raised when a chat's avatar is changed"""
+
+    chat_id: ChatId
+    old_avatar: str | None
+    new_avatar: str | None
+    changed_by: str
+    changed_at: datetime
