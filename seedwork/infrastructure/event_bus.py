@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from dishka import FromDishka
 from dishka.integrations.faststream import inject
-from faststream.redis import RedisBroker, RedisRouter
+from faststream.kafka import KafkaBroker, KafkaRouter
 
 from seedwork.application.handlers import Handler
 from seedwork.domain.events import DomainEvent
@@ -10,8 +10,8 @@ from seedwork.domain.events import DomainEvent
 from ..application.event_bus import EventBus, EventBusRouter
 
 
-def register_handler(router: RedisRouter, handler: Handler):
-    async def fs_handler(event: str, handler_):
+def register_handler(router: KafkaRouter, handler: Handler):
+    async def fs_handler(event, handler_):
         await handler_(event)
 
     fs_handler.__annotations__ = {
@@ -23,16 +23,17 @@ def register_handler(router: RedisRouter, handler: Handler):
 
 @dataclass
 class FastStreamEventBus(EventBus):
-    publisher: RedisBroker
+    publisher: KafkaBroker
 
     def include_router(self, route: EventBusRouter):
-        router = RedisRouter()
+        router = KafkaRouter()
         for handler in route.handlers:
             register_handler(router, handler)
         self.publisher.include_router(router)
 
-    async def publish(self, event: DomainEvent):
-        await self.publisher.publish(event, event.__tag__)
+    async def publish(self, *event: DomainEvent):
+        for event in event:
+            await self.publisher.publish(event, event.__tag__)
 
     async def start(self):
         await self.publisher.start()
