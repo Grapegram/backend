@@ -5,7 +5,7 @@ from datetime import datetime
 from returns.result import Failure, Result, Success
 
 from ...domain.aggregates import User
-from .token import InvalidTokenError, TokenExpiredError, TokenService
+from ..contracts.token import InvalidTokenError, TokenExpiredError, TokenService
 
 
 class InvalidTokenTypeError(Exception):

@@ -13,7 +13,7 @@ from src.generic.iam.domain.events import UserCreated
 
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
-from ..services.hasher import HasherService
+from ..contracts.hasher import HasherService
 from ..services.user_token import UserTokenService
 
 

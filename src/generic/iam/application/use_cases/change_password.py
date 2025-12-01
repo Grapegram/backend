@@ -10,7 +10,7 @@ from seedwork.application.stories import State as BaseState
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
 from ...domain.value_objects import InvalidPasswordError, Password, WeakPasswordError
-from ..services.hasher import HasherService
+from ..contracts.hasher import HasherService
 
 
 class FailedStatues(str, Enum):

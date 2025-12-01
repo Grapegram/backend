@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from seedwork.application.handlers import Handler
-from src.generic.iam.application.services.email import EmailService
+from src.generic.iam.application.contracts.email import EmailService
 from src.generic.iam.application.services.user_token import (
     UserTokenService,
     VerificationTokenPayload,

@@ -9,7 +9,7 @@ from seedwork.application.stories import State as BaseState
 
 from ...domain.aggregates import User
 from ...domain.repositories import UserRepository
-from ..services.hasher import HasherService
+from ..contracts.hasher import HasherService
 from ..services.user_token import LoginTokenStrategy, UserTokenService
 
 
