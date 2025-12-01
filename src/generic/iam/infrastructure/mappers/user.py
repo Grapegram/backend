@@ -11,6 +11,7 @@ def _to_user_from_model(model: UserModel) -> User:
         email=Email.from_raw(model.email),
         username=model.username,
         hashed_password=HashedPassword.from_raw(model.hashed_password),
+        avatar=model.avatar,
         is_active=model.is_active,
         is_verified=model.is_verified,
         last_login_at=model.last_login_at,

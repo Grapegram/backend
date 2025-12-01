@@ -23,6 +23,7 @@ class SQLAlchemyUserRepository(UserRepository):
             email=str(entity.email),
             username=entity.username,
             hashed_password=str(entity.hashed_password),
+            avatar=entity.avatar,
             is_active=entity.is_active,
             is_verified=entity.is_verified,
             last_login_at=entity.last_login_at,
@@ -34,6 +35,7 @@ class SQLAlchemyUserRepository(UserRepository):
         model.email = str(entity.email)
         model.username = entity.username
         model.hashed_password = str(entity.hashed_password)
+        model.avatar = entity.avatar
         model.is_active = entity.is_active
         model.is_verified = entity.is_verified
         model.last_login_at = entity.last_login_at
