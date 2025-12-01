@@ -46,8 +46,8 @@ def configure_app() -> Litestar:
         security_schemes={
             "IAMTokenAuth": SecurityScheme(
                 type="http",
-                name="Authorization",
-                security_scheme_in="header",
+                scheme="bearer",
+                bearer_format="JWT",
             )
         }
     )
