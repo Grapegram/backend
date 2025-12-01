@@ -18,6 +18,17 @@ class MessageDTO:
     updated_at: datetime
 
 
+@dataclass(frozen=True)
+class ChatDTO:
+    id: str
+    title: str
+    avatar: str | None
+    is_archived: bool
+    archived_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+
 class ChatReadRepository(Protocol):
     """
     Read-only repository for chat queries.
@@ -31,3 +42,5 @@ class ChatReadRepository(Protocol):
     ) -> list[MessageDTO]: ...
 
     async def count_messages_by_chat_id(self, chat_id: str) -> int: ...
+
+    async def get_chats_by_member_user_id(self, user_id: str) -> list[ChatDTO]: ...
