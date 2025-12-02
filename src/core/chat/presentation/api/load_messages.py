@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 
 from dishka.integrations.litestar import FromDishka, inject
@@ -19,9 +20,11 @@ class MessageResponse(Struct):
     id: str
     chat_id: str
     sender_id: str
-    text: str
-    is_deleted: bool
-    reactions: dict
+    text: str | None
+    images: list[str]
+    sent_at: datetime
+    edited_at: datetime | None
+    reactions: dict[str, list[str]]
     read_by: list[str]
 
 
@@ -67,7 +70,9 @@ async def load_messages(
                 chat_id=msg.chat_id,
                 sender_id=msg.sender_id,
                 text=msg.text,
-                is_deleted=msg.is_deleted,
+                images=msg.images,
+                sent_at=msg.sent_at,
+                edited_at=msg.edited_at,
                 reactions=msg.reactions,
                 read_by=msg.read_by,
             )
