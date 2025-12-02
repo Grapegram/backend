@@ -161,6 +161,14 @@ class SMTPSettings(BaseModel):
     support_email: str = "support@grapegram.com"
 
 
+class CORSSettings(BaseModel):
+    allow_origins: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:8128",
+    ]
+    allow_credentials: bool = True
+
+
 class StorageType(str, Enum):
     S3 = "s3"
     AZURE = "azure"
@@ -186,6 +194,7 @@ class AzureSettings(BaseModel):
 
 class Settings(BaseSettings):
     core: CoreSettings = Field(default_factory=CoreSettings)
+    cors: CORSSettings = Field(default_factory=CORSSettings)
     jwt: JWTSettings
     hash: HashSettings
     smtp: SMTPSettings
