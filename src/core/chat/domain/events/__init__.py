@@ -2,6 +2,7 @@ from .chat_events import (
     ChatArchived,
     ChatAvatarChanged,
     ChatCreated,
+    ChatDeleted,
     ChatTitleChanged,
     ChatUnarchived,
     MemberAdded,
@@ -27,6 +28,7 @@ __all__ = [
     "MemberRoleChanged",
     "ChatArchived",
     "ChatUnarchived",
+    "ChatDeleted",
     # Message events
     "MessageSent",
     "MessageEdited",

@@ -107,3 +107,13 @@ class MemberMustNotAlreadyExist(BusinessRule):
 
     def is_broken(self) -> bool:
         return self.user_id in self.existing_member_user_ids
+
+
+@dataclass
+class OnlyOwnerCanDeleteChat(BusinessRule):
+    """Only the owner can delete the chat."""
+
+    member: Member
+
+    def is_broken(self) -> bool:
+        return not self.member.is_owner()

@@ -14,6 +14,7 @@ from ..events import (
     ChatArchived,
     ChatAvatarChanged,
     ChatCreated,
+    ChatDeleted,
     ChatTitleChanged,
     ChatUnarchived,
     MemberAdded,
@@ -29,6 +30,7 @@ from ..rules.chat import (
     OnlyAdminCanChangeChatTitle,
     OnlyAdminCanRemoveMembers,
     OnlyOwnerCanChangeOwnership,
+    OnlyOwnerCanDeleteChat,
     UserIsNotMember,
 )
 from ..value_objects import ChatId, ChatTitle
@@ -334,3 +336,24 @@ class Chat(AggregateRoot[ChatId]):
             if member.user_id == user_id:
                 return member
         return None
+
+    @catch_unwrap
+    def delete(self, deleted_by: str) -> Result[None, VOValidationException]:
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=deleted_by)
+        ).unwrap()
+        member = self._get_member_by_user_id(deleted_by)
+
+        self.check_rule(OnlyOwnerCanDeleteChat(member=member)).unwrap()
+
+        deleted_at = utcnow()
+
+        self.register_event(
+            ChatDeleted(
+                chat_id=self.id,
+                deleted_by=deleted_by,
+                deleted_at=deleted_at,
+            )
+        )
+
+        return Success(None)
