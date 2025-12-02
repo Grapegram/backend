@@ -8,14 +8,12 @@ class MessageDTO:
     id: str
     chat_id: str
     sender_id: str
-    text: str
-    is_deleted: bool
-    deleted_at: datetime | None
+    text: str | None
+    images: list[str]
+    sent_at: datetime
     edited_at: datetime | None
-    reactions: dict
+    reactions: dict[str, list[str]]
     read_by: list[str]
-    created_at: datetime
-    updated_at: datetime
 
 
 @dataclass(frozen=True)
