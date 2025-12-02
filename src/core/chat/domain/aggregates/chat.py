@@ -29,6 +29,7 @@ from ..rules.chat import (
     OnlyAdminCanChangeChatTitle,
     OnlyAdminCanRemoveMembers,
     OnlyOwnerCanChangeOwnership,
+    UserIsNotMember,
 )
 from ..value_objects import ChatId, ChatTitle
 
@@ -99,9 +100,10 @@ class Chat(AggregateRoot[ChatId]):
     def change_title(
         self, new_title: str, changed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=changed_by)
+        ).unwrap()
         member = self._get_member_by_user_id(changed_by)
-        if not member:
-            raise ValueError(f"User {changed_by} is not a member of this chat")
 
         self.check_rule(OnlyAdminCanChangeChatTitle(member=member)).unwrap()
 
@@ -118,20 +120,20 @@ class Chat(AggregateRoot[ChatId]):
                 changed_at=utcnow(),
             )
         )
+        return Success(None)
 
     @catch_unwrap
     def change_avatar(
         self, new_avatar: str | None, changed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=changed_by)
+        ).unwrap()
         member = self._get_member_by_user_id(changed_by)
-        if not member:
-            raise ValueError(f"User {changed_by} is not a member of this chat")
-
         self.check_rule(OnlyAdminCanChangeChatAvatar(member=member)).unwrap()
 
-        avatar_vo = str.create(new_avatar).unwrap() if new_avatar else None
-        old_avatar = str(self.avatar) if self.avatar else None
-        self.avatar = avatar_vo
+        old_avatar = self.avatar
+        self.avatar = new_avatar
 
         self.register_event(
             ChatAvatarChanged(
@@ -143,14 +145,16 @@ class Chat(AggregateRoot[ChatId]):
             )
         )
 
+        return Success(None)
+
     @catch_unwrap
     def add_member(
         self, user_id: str, added_by: str, role: MemberRole = MemberRole.MEMBER
     ) -> Result[Member, VOValidationException]:
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=added_by)
+        ).unwrap()
         member = self._get_member_by_user_id(added_by)
-        if not member:
-            raise ValueError(f"User {added_by} is not a member of this chat")
-
         self.check_rule(OnlyAdminCanAddMembers(member=member)).unwrap()
 
         existing_user_ids = [m.user_id for m in self.members]
@@ -185,13 +189,13 @@ class Chat(AggregateRoot[ChatId]):
     def remove_member(
         self, user_id: str, removed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=removed_by)
+        ).unwrap()
         member = self._get_member_by_user_id(removed_by)
-        if not member:
-            raise ValueError(f"User {removed_by} is not a member of this chat")
 
+        self.check_rule(UserIsNotMember(members=self.members, user_id=user_id)).unwrap()
         member_to_remove = self._get_member_by_user_id(user_id)
-        if not member_to_remove:
-            raise ValueError(f"User {user_id} is not a member of this chat")
 
         # User can remove themselves, or admin can remove others
         if user_id != removed_by:
@@ -213,18 +217,19 @@ class Chat(AggregateRoot[ChatId]):
                 removed_at=utcnow(),
             )
         )
+        return Success(None)
 
     @catch_unwrap
     def change_member_role(
         self, user_id: str, new_role: MemberRole, changed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=changed_by)
+        ).unwrap()
         member = self._get_member_by_user_id(changed_by)
-        if not member:
-            raise ValueError(f"User {changed_by} is not a member of this chat")
 
+        self.check_rule(UserIsNotMember(members=self.members, user_id=user_id)).unwrap()
         member = self._get_member_by_user_id(user_id)
-        if not member:
-            raise ValueError(f"User {user_id} is not a member of this chat")
 
         # Only owner can change ownership
         if new_role == MemberRole.OWNER:
@@ -256,14 +261,17 @@ class Chat(AggregateRoot[ChatId]):
                 changed_at=utcnow(),
             )
         )
+        return Success(None)
 
+    @catch_unwrap
     def archive(self, archived_by: str) -> None:
         if self.is_archived:
             return
 
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=archived_by)
+        ).unwrap()
         member = self._get_member_by_user_id(archived_by)
-        if not member:
-            raise ValueError(f"User {archived_by} is not a member of this chat")
 
         if not member.has_admin_privileges():
             raise ValueError("Only admins or owners can archive the chat")
@@ -278,14 +286,17 @@ class Chat(AggregateRoot[ChatId]):
                 archived_at=self.archived_at,
             )
         )
+        return Success(None)
 
+    @catch_unwrap
     def unarchive(self, unarchived_by: str) -> None:
         if not self.is_archived:
             return
 
+        self.check_rule(
+            UserIsNotMember(members=self.members, user_id=unarchived_by)
+        ).unwrap()
         member = self._get_member_by_user_id(unarchived_by)
-        if not member:
-            raise ValueError(f"User {unarchived_by} is not a member of this chat")
 
         if not member.has_admin_privileges():
             raise ValueError("Only admins or owners can unarchive the chat")
@@ -300,6 +311,8 @@ class Chat(AggregateRoot[ChatId]):
                 unarchived_at=utcnow(),
             )
         )
+
+        return Success(None)
 
     def owner(self) -> Member:
         for member in self.members:

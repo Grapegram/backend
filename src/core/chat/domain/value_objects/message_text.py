@@ -90,6 +90,9 @@ class MessageText(BoundedString):
         """Check if message contains a substring (case-insensitive)."""
         return substring.lower() in self._value.lower()
 
+    def __str__(self) -> str:
+        return self._value
+
     def __repr__(self) -> str:
         """Return representation of the message text."""
         preview = self._value[:50] + "..." if len(self._value) > 50 else self._value

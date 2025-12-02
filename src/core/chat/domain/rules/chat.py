@@ -12,6 +12,23 @@ from ..entities import Member
 
 
 @dataclass
+class UserIsNotMember(BusinessRule):
+    """User is not a member of this chat"""
+
+    members: list[Member]
+    user_id: str
+
+    def _is_user_in_members(self) -> bool:
+        for member in self.members:
+            if member.user_id == self.user_id:
+                return True
+        return False
+
+    def is_broken(self) -> bool:
+        return not self._is_user_in_members()
+
+
+@dataclass
 class OnlyAdminCanChangeChatTitle(BusinessRule):
     """Only admins or owners can change the chat title."""
 
