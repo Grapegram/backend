@@ -15,6 +15,7 @@ class MessageModel(Base):
     chat_id: Mapped[UUID] = mapped_column(String(255), nullable=False, index=True)
     sender_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    images: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

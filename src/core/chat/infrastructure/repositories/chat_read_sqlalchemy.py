@@ -34,17 +34,18 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
                 id=str(model.id),
                 chat_id=str(model.chat_id),
                 sender_id=model.sender_id,
-                text=model.text,
-                is_deleted=model.is_deleted,
-                deleted_at=model.deleted_at,
+                text=model.text or None,
+                images=await self.fetch_images(model.images or []),
+                sent_at=model.created_at,
                 edited_at=model.edited_at,
                 reactions=model.reactions if model.reactions else {},
                 read_by=model.read_by if model.read_by else [],
-                created_at=model.created_at,
-                updated_at=model.updated_at,
             )
             for model in models
         ]
+
+    async def fetch_images(self, imgs: list[str]):
+        return [await self._object_storage.get_file_url(key=img) for img in imgs]
 
     async def count_messages_by_chat_id(self, chat_id: str) -> int:
         stmt = (

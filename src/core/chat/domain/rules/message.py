@@ -78,3 +78,25 @@ class MessageMustBelongToChat(BusinessRule):
 
     def is_broken(self) -> bool:
         return self.message_chat_id != self.expected_chat_id
+
+
+@dataclass
+class MessageCannotHaveMoreThanMaxImages(BusinessRule):
+    """A message cannot have more than 10 images."""
+
+    images_count: int
+    max_images: int = 10
+
+    def is_broken(self) -> bool:
+        return self.images_count > self.max_images
+
+
+@dataclass
+class MessageMustHaveTextOrImages(BusinessRule):
+    """A message must have either text or at least one image."""
+
+    has_text: bool
+    has_images: bool
+
+    def is_broken(self) -> bool:
+        return not self.has_text and not self.has_images
