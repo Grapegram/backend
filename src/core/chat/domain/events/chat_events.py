@@ -95,3 +95,12 @@ class ChatAvatarChanged(DomainEvent):
     new_avatar: str | None
     changed_by: str
     changed_at: datetime
+
+
+@dataclass(frozen=True)
+class ChatDeleted(DomainEvent):
+    """Event raised when a chat is deleted"""
+
+    chat_id: ChatId
+    deleted_by: str
+    deleted_at: datetime
