@@ -21,6 +21,7 @@ from src.core.chat.application.use_cases import (
     ChangeChatTitle,
     ChangeMemberRole,
     CreateChat,
+    DeleteChat,
     DeleteMessage,
     EditMessage,
     MarkMessageAsRead,
@@ -176,6 +177,17 @@ class ChatProvider(Provider):
         event_bus: EventBus,
     ) -> UnarchiveChat:
         return UnarchiveChat(
+            chat_repo=chat_repo,
+            event_bus=event_bus,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_delete_chat_story(
+        self,
+        chat_repo: ChatRepository,
+        event_bus: EventBus,
+    ) -> DeleteChat:
+        return DeleteChat(
             chat_repo=chat_repo,
             event_bus=event_bus,
         )

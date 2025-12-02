@@ -5,6 +5,7 @@ from .change_chat_avatar import ChangeChatAvatar
 from .change_chat_title import ChangeChatTitle
 from .change_member_role import ChangeMemberRole
 from .create_chat import CreateChat
+from .delete_chat import DeleteChat
 from .delete_message import DeleteMessage
 from .edit_message import EditMessage
 from .mark_message_as_read import MarkMessageAsRead
@@ -22,6 +23,7 @@ __all__ = [
     "ChangeMemberRole",
     "ArchiveChat",
     "UnarchiveChat",
+    "DeleteChat",
     "SendMessage",
     "EditMessage",
     "DeleteMessage",
