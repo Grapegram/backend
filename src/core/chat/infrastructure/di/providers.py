@@ -12,6 +12,7 @@ from src.core.chat.application.handlers.queries import (
     LoadMessagesFromChat,
 )
 from src.core.chat.application.services.chat import ChatService
+from src.core.chat.application.services.message import MessageService
 from src.core.chat.application.use_cases import (
     AddMember,
     AddReaction,
@@ -42,6 +43,10 @@ class ChatProvider(Provider):
     @provide(scope=Scope.APP)
     def provide_chat_service(self, object_storage: ObjectStorage) -> ChatService:
         return ChatService(object_storage=object_storage)
+
+    @provide(scope=Scope.APP)
+    def provide_message_service(self, object_storage: ObjectStorage) -> MessageService:
+        return MessageService(object_storage=object_storage)
 
     @provide(scope=Scope.REQUEST)
     def provide_chat_repository(self, session: AsyncSession) -> ChatRepository:
@@ -179,10 +184,12 @@ class ChatProvider(Provider):
     def provide_send_message_story(
         self,
         message_repo: MessageRepository,
+        message_service: MessageService,
         event_bus: EventBus,
     ) -> SendMessage:
         return SendMessage(
             message_repo=message_repo,
+            message_service=message_service,
             event_bus=event_bus,
         )
 
