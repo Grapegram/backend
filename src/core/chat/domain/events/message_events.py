@@ -20,6 +20,7 @@ class MessageSent(DomainEvent):
     chat_id: ChatId
     sender_id: str
     text: str
+    images: list[str]
     sent_at: datetime
 
 

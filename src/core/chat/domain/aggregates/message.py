@@ -28,7 +28,9 @@ from ..events import (
 )
 from ..rules.message import (
     MessageCannotBeEditedAfterDeletion,
+    MessageCannotHaveMoreThanMaxImages,
     MessageMustBelongToChat,
+    MessageMustHaveTextOrImages,
     NewMessageTextMustBeDifferent,
     OnlyAuthorCanEditMessage,
     OnlyAuthorOrAdminCanDeleteMessage,
@@ -48,7 +50,9 @@ class Message(AggregateRoot[MessageId]):
     id: MessageId
     chat_id: ChatId
     sender_id: MemberId
-    text: MessageText
+    sent_at: datetime
+    text: MessageText | None
+    images: list[str] = field(default_factory=list)
     is_deleted: bool = False
     deleted_at: datetime | None = None
     edited_at: datetime | None = None
@@ -61,11 +65,18 @@ class Message(AggregateRoot[MessageId]):
         cls,
         chat_id: str,
         sender_id: str,
-        text: str,
-    ) -> Result[Self, VOValidationException]:
+        text: str | None = None,
+        images: list[str] | None = None,
+    ) -> Result[
+        Self,
+        VOValidationException
+        | MessageCannotHaveMoreThanMaxImages
+        | MessageMustHaveTextOrImages,
+    ]:
         message_id = MessageId.next_id()
         chat_id_vo = ChatId(chat_id)
-        text_vo = MessageText(text).unwrap()
+        text_vo = MessageText(text).unwrap() if text else None
+        images = images or []
         now = utcnow()
 
         message = cls(
@@ -73,14 +84,24 @@ class Message(AggregateRoot[MessageId]):
             chat_id=chat_id_vo,
             sender_id=sender_id,
             text=text_vo,
+            images=images,
+            sent_at=now,
         )
+
+        message.check_rule(
+            MessageCannotHaveMoreThanMaxImages(images_count=len(images))
+        ).unwrap()
+        message.check_rule(
+            MessageMustHaveTextOrImages(has_text=bool(text_vo), has_images=bool(images))
+        ).unwrap()
 
         message.register_event(
             MessageSent(
                 message_id=message_id,
                 chat_id=chat_id_vo,
                 sender_id=sender_id,
-                text=str(text_vo),
+                text=str(text_vo) if text_vo else "",
+                images=images,
                 sent_at=now,
             )
         )
@@ -99,11 +120,14 @@ class Message(AggregateRoot[MessageId]):
         ).unwrap()
 
         text_vo = MessageText(new_text).unwrap()
-        self.check_rule(
-            NewMessageTextMustBeDifferent(current_text=self.text, new_text=text_vo)
-        ).unwrap()
 
-        old_text = str(self.text)
+        # Only check if text is different if current text exists
+        if self.text:
+            self.check_rule(
+                NewMessageTextMustBeDifferent(current_text=self.text, new_text=text_vo)
+            ).unwrap()
+
+        old_text = str(self.text) if self.text else ""
         self.text = text_vo
         self.edited_at = utcnow()
 
