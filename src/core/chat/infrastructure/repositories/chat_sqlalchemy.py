@@ -24,6 +24,7 @@ class SQLAlchemyChatRepository(ChatRepository):
         model.title = str(entity.title)
         model.is_archived = entity.is_archived
         model.archived_at = entity.archived_at
+        model.avatar = entity.avatar
         model.updated_at = utcnow()
 
         existing_member_ids = {member.id for member in model.members}

@@ -1,6 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from seedwork.application.object_storage import ObjectStorage
 from src.core.chat.application.contracts.repositories import ChatReadRepository
 from src.core.chat.application.contracts.repositories.chat_read_repository import (
     ChatDTO,
@@ -11,8 +12,9 @@ from src.core.chat.infrastructure.models.chat import ChatModel, MemberModel
 
 
 class SQLAlchemyChatReadRepository(ChatReadRepository):
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, object_storage: ObjectStorage):
         self._session = session
+        self._object_storage = object_storage
 
     async def get_messages_by_chat_id(
         self, chat_id: str, limit: int, offset: int
@@ -67,7 +69,7 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
             ChatDTO(
                 id=str(model.id),
                 title=model.title,
-                avatar=model.avatar,
+                avatar=await self._resolve_avatar_url(model.avatar),
                 is_archived=model.is_archived,
                 archived_at=model.archived_at,
                 created_at=model.created_at,
@@ -75,3 +77,8 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
             )
             for model in models
         ]
+
+    async def _resolve_avatar_url(self, avatar_key: str | None) -> str | None:
+        if not avatar_key:
+            return None
+        return await self._object_storage.get_file_url(key=avatar_key)

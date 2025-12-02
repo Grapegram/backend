@@ -40,8 +40,8 @@ from src.generic.iam.application.services.auth import AuthService as IAMAuthServ
 
 class ChatProvider(Provider):
     @provide(scope=Scope.APP)
-    def provide_chat_service(self, object_sotrage: ObjectStorage) -> ChatService:
-        return ChatService(object_storage=object_sotrage)
+    def provide_chat_service(self, object_storage: ObjectStorage) -> ChatService:
+        return ChatService(object_storage=object_storage)
 
     @provide(scope=Scope.REQUEST)
     def provide_chat_repository(self, session: AsyncSession) -> ChatRepository:
@@ -52,8 +52,10 @@ class ChatProvider(Provider):
         return SQLAlchemyMessageRepository(session)
 
     @provide(scope=Scope.REQUEST)
-    def provide_chat_read_repository(self, session: AsyncSession) -> ChatReadRepository:
-        return SQLAlchemyChatReadRepository(session)
+    def provide_chat_read_repository(
+        self, session: AsyncSession, object_storage: ObjectStorage
+    ) -> ChatReadRepository:
+        return SQLAlchemyChatReadRepository(session, object_storage)
 
     @provide(scope=Scope.REQUEST)
     def provide_get_chats_list_handler(

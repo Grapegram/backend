@@ -21,12 +21,10 @@ def _model_to_member(model: MemberModel) -> Member:
 def _to_chat_from_model(model: ChatModel) -> Chat:
     members = [_model_to_member(member_model) for member_model in model.members]
 
-    avatar = str.create(model.avatar).unwrap() if model.avatar else None
-
     return Chat(
         id=ChatId(str(model.id)),
         title=ChatTitle.from_raw(model.title),
-        avatar=avatar,
+        avatar=model.avatar,
         is_archived=model.is_archived,
         archived_at=model.archived_at,
         members=members,
