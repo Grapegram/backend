@@ -12,21 +12,22 @@ class ChatService:
 
     async def upload_avatar(
         self, chat: Chat, content_type: str, image_data: bytes
-    ) -> str:
+    ) -> tuple[str, str]:
         file_extension = self._get_extension_from_content_type(content_type)
         filename = f"chat-avatars/{chat.id}/{uuid4()}{file_extension}"
 
-        return (
-            filename,
-            await self.object_storage.upload_file(
-                key=filename,
-                data=image_data,
-                content_type=content_type,
-            ),
+        url = await self.object_storage.upload_file(
+            key=filename,
+            data=image_data,
+            content_type=content_type,
         )
 
+        return filename, url
+
     async def get_avatar_url(self, chat: Chat) -> str | None:
-        return await self.object_storage.get_file_url(chat.avatar)
+        if not chat.avatar:
+            return None
+        return await self.object_storage.get_file_url(key=chat.avatar)
 
     def _get_extension_from_content_type(self, content_type: str) -> str:
         extensions = {

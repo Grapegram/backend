@@ -59,7 +59,7 @@ class ChangeChatAvatar(Story):
         if chat == Nothing:
             state.result = Failure(FailedStatuses.CHAT_NOT_FOUND)
             raise Interrupt
-        state.chat = chat
+        state.chat = chat.unwrap()
 
     async def upload_avatar(self, state: State):
         if state.image_data is None:
@@ -67,15 +67,11 @@ class ChangeChatAvatar(Story):
             state.avatar = None
             return
 
-        try:
-            key, url = await self.chat_service.upload_avatar(
-                state.chat, state.content_type, state.image_data
-            )
-            state.avatar = key
-            state.avatar_url = url
-        except Exception:
-            state.result = Failure(FailedStatuses.UPLOAD_FAILED)
-            raise Interrupt
+        key, url = await self.chat_service.upload_avatar(
+            state.chat, state.content_type, state.image_data
+        )
+        state.avatar = key
+        state.avatar_url = url
 
     async def change_avatar(self, state: State):
         result = state.chat.change_avatar(state.avatar, state.changed_by)
@@ -91,7 +87,7 @@ class ChangeChatAvatar(Story):
 
     async def save_chat(self, state: State):
         await self.chat_repo.save(state.chat)
-        state.result = Success(state.avatar)
+        state.result = Success(state.avatar_url)
 
     async def publish_events(self, state: State):
         for event in filter_events(state.chat.collect_events(), (ChatAvatarChanged,)):
