@@ -1,10 +1,12 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from seedwork.application.object_storage import ObjectStorage
 from src.core.chat.application.contracts.repositories import ChatReadRepository
 from src.core.chat.application.contracts.repositories.chat_read_repository import (
     ChatDTO,
+    ChatMemberDTO,
     MessageDTO,
 )
 from src.core.chat.infrastructure.models import MessageModel
@@ -61,7 +63,7 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
             select(ChatModel)
             .join(MemberModel, ChatModel.id == MemberModel.chat_id)
             .where(MemberModel.user_id == user_id)
-            .order_by(ChatModel.updated_at.desc())
+            .options(selectinload(ChatModel.members))
         )
         result = await self._session.execute(stmt)
         models = result.scalars().all()
@@ -71,10 +73,15 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
                 id=str(model.id),
                 title=model.title,
                 avatar=await self._resolve_avatar_url(model.avatar),
-                is_archived=model.is_archived,
-                archived_at=model.archived_at,
-                created_at=model.created_at,
-                updated_at=model.updated_at,
+                members=[
+                    ChatMemberDTO(
+                        id=str(member.id),
+                        user_id=member.user_id,
+                        role=member.role,
+                        joined_at=member.joined_at,
+                    )
+                    for member in model.members
+                ],
             )
             for model in models
         ]

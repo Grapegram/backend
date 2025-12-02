@@ -17,14 +17,19 @@ class MessageDTO:
 
 
 @dataclass(frozen=True)
+class ChatMemberDTO:
+    id: str
+    user_id: str
+    role: str
+    joined_at: datetime
+
+
+@dataclass(frozen=True)
 class ChatDTO:
     id: str
     title: str
     avatar: str | None
-    is_archived: bool
-    archived_at: datetime | None
-    created_at: datetime
-    updated_at: datetime
+    members: list[ChatMemberDTO]
 
 
 class ChatReadRepository(Protocol):

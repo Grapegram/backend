@@ -12,11 +12,17 @@ from src.core.chat.application.handlers.queries.get_chats_list import (
 from src.core.chat.presentation.api.guards import get_current_user_id
 
 
+class ChatMemberResponse(Struct):
+    id: str
+    user_id: str
+    role: str
+
+
 class ChatResponse(Struct):
     id: str
     title: str
     avatar: str | None
-    is_archived: bool
+    members: list[ChatMemberResponse]
 
 
 class GetChatsListResponse(Struct):
@@ -45,7 +51,14 @@ async def get_chats_list(
                 id=chat.id,
                 title=chat.title,
                 avatar=chat.avatar,
-                is_archived=chat.is_archived,
+                members=[
+                    ChatMemberResponse(
+                        id=member.id,
+                        user_id=member.user_id,
+                        role=member.role,
+                    )
+                    for member in chat.members
+                ],
             )
             for chat in result.chats
         ]
