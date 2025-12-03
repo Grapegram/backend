@@ -1,4 +1,9 @@
 from litestar import Router
+from src.core.chat.presentation.api.check_online_status import (
+    check_bulk_online_status,
+    check_user_online_status,
+    get_typing_users_in_chat,
+)
 
 from src.core.chat.presentation.api.add_member import add_member
 from src.core.chat.presentation.api.add_reaction import add_reaction
@@ -43,6 +48,11 @@ routes = [
             delete_message,
             # Reaction operations
             add_reaction,
+            # Online status
+            check_user_online_status,
+            check_bulk_online_status,
+            # Typing status
+            get_typing_users_in_chat,
             live_chat,
         ],
     ),

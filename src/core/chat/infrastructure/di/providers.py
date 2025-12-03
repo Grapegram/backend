@@ -1,11 +1,14 @@
 from dishka import Provider, Scope, provide
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
 from seedwork.application.notifier import Notifier
 from seedwork.application.object_storage import ObjectStorage
+from src.app.settings import Settings
 from src.core.chat.application.contracts.auth import AuthService
 from src.core.chat.application.contracts.repositories import ChatReadRepository
+from src.core.chat.application.contracts.user_status import UserStatusService
 from src.core.chat.application.handlers.events import ExposeMessageSentEvent
 from src.core.chat.application.handlers.queries import (
     GetChatById,
@@ -39,10 +42,24 @@ from src.core.chat.infrastructure.repositories import (
     SQLAlchemyChatRepository,
     SQLAlchemyMessageRepository,
 )
+from src.core.chat.infrastructure.services.user_status import RedisUserStatusService
 from src.generic.iam.application.services.auth import AuthService as IAMAuthService
 
 
 class ChatProvider(Provider):
+    @provide(scope=Scope.APP)
+    async def provide_redis(self, settings: Settings) -> Redis:
+        redis = Redis.from_url(str(settings.redis.url), decode_responses=False)
+        return redis
+
+    @provide(scope=Scope.APP)
+    def provide_user_status_service(self, redis: Redis) -> UserStatusService:
+        return RedisUserStatusService(
+            redis=redis,
+            online_ttl_seconds=30,
+            typing_ttl_seconds=5,
+        )
+
     @provide(scope=Scope.APP)
     def provide_chat_service(self, object_storage: ObjectStorage) -> ChatService:
         return ChatService(object_storage=object_storage)
