@@ -21,6 +21,7 @@ class ChatMemberResponse(Struct):
 class ChatResponse(Struct):
     id: str
     title: str
+    type: str
     avatar: str | None
     members: list[ChatMemberResponse]
 
@@ -50,6 +51,7 @@ async def get_chats_list(
             ChatResponse(
                 id=chat.id,
                 title=chat.title,
+                type=chat.type,
                 avatar=chat.avatar,
                 members=[
                     ChatMemberResponse(
