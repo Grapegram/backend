@@ -10,6 +10,7 @@ from src.core.chat.presentation.api.change_chat_avatar import (
 from src.core.chat.presentation.api.change_chat_title import change_chat_title
 from src.core.chat.presentation.api.chat_ws import live_chat
 from src.core.chat.presentation.api.create_chat import create_chat
+from src.core.chat.presentation.api.create_direct_chat import create_direct_chat
 from src.core.chat.presentation.api.delete_chat import delete_chat
 from src.core.chat.presentation.api.delete_message import delete_message
 from src.core.chat.presentation.api.edit_message import edit_message
@@ -23,6 +24,7 @@ routes = [
         route_handlers=[
             # Chat operations
             create_chat,
+            create_direct_chat,
             get_chats_list,
             change_chat_title,
             upload_chat_avatar,
