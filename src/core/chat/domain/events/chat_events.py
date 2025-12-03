@@ -18,6 +18,7 @@ class ChatCreated(DomainEvent):
 
     chat_id: ChatId
     title: str
+    chat_type: str
     created_by: str
     created_at: datetime
 
