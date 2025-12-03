@@ -1,6 +1,6 @@
 from returns.maybe import Maybe, Nothing, Some
 from returns.result import Failure, Result, Success
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.domain.repositories.exceptions import EntityNotFoundException
@@ -8,7 +8,7 @@ from seedwork.domain.services.clock import utcnow
 from src.core.chat.domain.aggregates import Chat
 from src.core.chat.domain.mappers import to_chat
 from src.core.chat.domain.repositories import ChatRepository
-from src.core.chat.domain.value_objects import ChatId
+from src.core.chat.domain.value_objects import ChatId, ChatType
 from src.core.chat.infrastructure.mappers.chat import chat_to_model, member_to_model
 from src.core.chat.infrastructure.models import ChatModel, MemberModel
 
@@ -22,6 +22,7 @@ class SQLAlchemyChatRepository(ChatRepository):
 
     def update_model(self, entity: Chat, model: ChatModel) -> None:
         model.title = str(entity.title)
+        model.type = entity.type.value
         model.is_archived = entity.is_archived
         model.archived_at = entity.archived_at
         model.avatar = entity.avatar
@@ -113,6 +114,58 @@ class SQLAlchemyChatRepository(ChatRepository):
 
     async def get_by_member_user_id(self, user_id: str) -> list[Chat]:
         return await self.get_by_user_id(user_id)
+
+    async def get_direct_chat_between(
+        self, user1_id: str, user2_id: str
+    ) -> Maybe[Chat]:
+        # Find direct chats where both users are members
+        # Subquery to count members for each chat
+        member_count_subquery = (
+            select(
+                MemberModel.chat_id, func.count(MemberModel.id).label("member_count")
+            )
+            .group_by(MemberModel.chat_id)
+            .subquery()
+        )
+
+        # Find chats where user1 is a member
+        user1_chats = (
+            select(MemberModel.chat_id)
+            .where(MemberModel.user_id == user1_id)
+            .subquery()
+        )
+
+        # Find chats where user2 is a member
+        user2_chats = (
+            select(MemberModel.chat_id)
+            .where(MemberModel.user_id == user2_id)
+            .subquery()
+        )
+
+        # Find direct chats with exactly 2 members where both users are members
+        stmt = (
+            select(ChatModel)
+            .join(
+                member_count_subquery, ChatModel.id == member_count_subquery.c.chat_id
+            )
+            .where(
+                and_(
+                    ChatModel.type == ChatType.DIRECT.value,
+                    member_count_subquery.c.member_count == 2,
+                    ChatModel.id.in_(user1_chats),
+                    ChatModel.id.in_(user2_chats),
+                )
+            )
+            .limit(1)
+        )
+
+        result = await self._session.execute(stmt)
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            return Nothing
+
+        return Some(to_chat(model))
 
     async def all(self) -> list[Chat]:
         stmt = select(ChatModel).order_by(ChatModel.created_at.desc())
