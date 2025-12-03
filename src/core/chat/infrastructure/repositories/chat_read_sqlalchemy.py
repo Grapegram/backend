@@ -19,15 +19,24 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
         self._object_storage = object_storage
 
     async def get_messages_by_chat_id(
-        self, chat_id: str, limit: int, offset: int
+        self, chat_id: str, from_message_id: str | None, limit: int
     ) -> list[MessageDTO]:
-        stmt = (
-            select(MessageModel)
-            .where(MessageModel.chat_id == chat_id)
-            .order_by(MessageModel.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        stmt = select(MessageModel).where(MessageModel.chat_id == chat_id)
+
+        if from_message_id:
+            # Get the created_at timestamp of the reference message
+            ref_stmt = select(MessageModel.created_at).where(
+                MessageModel.id == from_message_id
+            )
+            ref_result = await self._session.execute(ref_stmt)
+            ref_created_at = ref_result.scalar_one_or_none()
+
+            if ref_created_at:
+                # Fetch messages created before the reference message
+                stmt = stmt.where(MessageModel.created_at < ref_created_at)
+
+        stmt = stmt.order_by(MessageModel.created_at.desc()).limit(limit)
+
         result = await self._session.execute(stmt)
         models = result.scalars().all()
 

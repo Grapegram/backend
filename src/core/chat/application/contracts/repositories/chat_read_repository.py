@@ -42,7 +42,10 @@ class ChatReadRepository(Protocol):
     """
 
     async def get_messages_by_chat_id(
-        self, chat_id: str, limit: int, offset: int
+        self,
+        chat_id: str,
+        from_message_id: str | None,
+        limit: int,
     ) -> list[MessageDTO]: ...
 
     async def count_messages_by_chat_id(self, chat_id: str) -> int: ...

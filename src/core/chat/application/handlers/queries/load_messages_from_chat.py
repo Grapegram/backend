@@ -10,16 +10,14 @@ from src.core.chat.application.contracts.repositories.chat_read_repository impor
 @dataclass(frozen=True)
 class LoadMessagesFromChatQuery(Query):
     chat_id: str
+    from_message_id: str | None = None
     limit: int = 50
-    offset: int = 0
 
 
 @dataclass(frozen=True)
 class LoadMessagesFromChatResult:
     messages: list[MessageDTO]
-    total_count: int
     limit: int
-    offset: int
     has_more: bool
 
 
@@ -34,18 +32,16 @@ class LoadMessagesFromChat(Handler):
     ) -> LoadMessagesFromChatResult:
         messages = await self.chat_read_repo.get_messages_by_chat_id(
             chat_id=query.chat_id,
-            limit=query.limit,
-            offset=query.offset,
+            from_message_id=query.from_message_id,
+            limit=query.limit + 1,
         )
 
-        total_count = await self.chat_read_repo.count_messages_by_chat_id(query.chat_id)
-
-        has_more = (query.offset + query.limit) < total_count
+        has_more = len(messages) > query.limit
+        if has_more:
+            messages = messages[: query.limit]
 
         return LoadMessagesFromChatResult(
             messages=messages,
-            total_count=total_count,
             limit=query.limit,
-            offset=query.offset,
             has_more=has_more,
         )

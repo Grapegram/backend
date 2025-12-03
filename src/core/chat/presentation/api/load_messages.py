@@ -30,9 +30,7 @@ class MessageResponse(Struct):
 
 class LoadMessagesResponse(Struct):
     messages: list[MessageResponse]
-    total_count: int
     limit: int
-    offset: int
     has_more: bool
 
 
@@ -51,16 +49,20 @@ async def load_messages(
         int,
         Parameter(default=50, ge=1, le=100, description="Number of messages to load"),
     ] = 50,
-    offset: Annotated[
-        int, Parameter(default=0, ge=0, description="Offset for pagination")
-    ] = 0,
+    from_message_id: Annotated[
+        str | None,
+        Parameter(
+            default=None,
+            description="Message ID to load messages before (for cursor-based pagination)",
+        ),
+    ] = None,
     handler: FromDishka[LoadMessagesFromChat] = None,
 ) -> LoadMessagesResponse:
     try:
         query = LoadMessagesFromChatQuery(
             chat_id=chat_id,
+            from_message_id=from_message_id,
             limit=limit,
-            offset=offset,
         )
         result = await handler(query)
 
@@ -81,9 +83,7 @@ async def load_messages(
 
         return LoadMessagesResponse(
             messages=messages,
-            total_count=result.total_count,
             limit=result.limit,
-            offset=result.offset,
             has_more=result.has_more,
         )
     except Exception as e:
