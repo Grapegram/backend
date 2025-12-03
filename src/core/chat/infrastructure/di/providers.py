@@ -21,6 +21,7 @@ from src.core.chat.application.use_cases import (
     ChangeChatTitle,
     ChangeMemberRole,
     CreateChat,
+    CreateDirectChat,
     DeleteChat,
     DeleteMessage,
     EditMessage,
@@ -98,6 +99,17 @@ class ChatProvider(Provider):
         event_bus: EventBus,
     ) -> CreateChat:
         return CreateChat(
+            chat_repo=chat_repo,
+            event_bus=event_bus,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_get_or_create_direct_chat_story(
+        self,
+        chat_repo: ChatRepository,
+        event_bus: EventBus,
+    ) -> CreateDirectChat:
+        return CreateDirectChat(
             chat_repo=chat_repo,
             event_bus=event_bus,
         )

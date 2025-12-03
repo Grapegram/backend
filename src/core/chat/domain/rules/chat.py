@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from seedwork.domain.rule import BusinessRule
 
 from ..entities import Member
+from ..value_objects import ChatType
 
 
 @dataclass
@@ -117,3 +118,64 @@ class OnlyOwnerCanDeleteChat(BusinessRule):
 
     def is_broken(self) -> bool:
         return not self.member.is_owner()
+
+
+@dataclass
+class CannotCreateDirectChatWithSelf(BusinessRule):
+    """Cannot create a direct chat with yourself"""
+
+    user1_id: str
+    user2_id: str
+
+    def is_broken(self) -> bool:
+        return self.user1_id == self.user2_id
+
+
+@dataclass
+class CannotRemoveMemberInDirectChat(BusinessRule):
+    """Cannot remove member from direct chats."""
+
+    chat_type: ChatType
+
+    def is_broken(self) -> bool:
+        return self.chat_type == self.ChatType.DIRECT
+
+
+@dataclass
+class CannotAddMembersToDirectChat(BusinessRule):
+    """Cannot add members to direct chats."""
+
+    chat_type: ChatType
+
+    def is_broken(self) -> bool:
+        return self.chat_type == ChatType.DIRECT
+
+
+@dataclass
+class CannotChangeRoleInDirectChat(BusinessRule):
+    """Cannot change member roles in direct chats - all members are equal."""
+
+    chat_type: ChatType
+
+    def is_broken(self) -> bool:
+        return self.chat_type == ChatType.DIRECT
+
+
+@dataclass
+class CannotChangeTitleOfDirectChat(BusinessRule):
+    """Direct chat titles are system-managed."""
+
+    chat_type: ChatType
+
+    def is_broken(self) -> bool:
+        return self.chat_type == ChatType.DIRECT
+
+
+@dataclass
+class CannotChangeAvatarOfDirectChat(BusinessRule):
+    """Direct chat avatars are system-managed."""
+
+    chat_type: ChatType
+
+    def is_broken(self) -> bool:
+        return self.chat_type == ChatType.DIRECT

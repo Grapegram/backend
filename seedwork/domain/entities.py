@@ -25,7 +25,8 @@ class AggregateRoot(Entity[EntityId]):
 
     _events: list = field(default_factory=list)
 
-    def check_rule(self, rule: BusinessRule) -> Result[None, BusinessRule]:
+    @classmethod
+    def check_rule(cls, rule: BusinessRule) -> Result[None, BusinessRule]:
         if rule.is_broken():
             return Failure(rule)
         return Success(None)

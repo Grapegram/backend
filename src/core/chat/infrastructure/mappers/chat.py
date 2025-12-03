@@ -2,7 +2,7 @@ from seedwork.domain.services.clock import utcnow
 from src.core.chat.domain.aggregates import Chat
 from src.core.chat.domain.entities import Member, MemberRole
 from src.core.chat.domain.mappers import to_chat
-from src.core.chat.domain.value_objects import ChatId, ChatTitle, MemberId
+from src.core.chat.domain.value_objects import ChatId, ChatTitle, ChatType, MemberId
 from src.core.chat.infrastructure.models import ChatModel, MemberModel
 
 
@@ -24,6 +24,7 @@ def _to_chat_from_model(model: ChatModel) -> Chat:
     return Chat(
         id=ChatId(str(model.id)),
         title=ChatTitle.from_raw(model.title),
+        type=ChatType(model.type),
         avatar=model.avatar,
         is_archived=model.is_archived,
         archived_at=model.archived_at,
@@ -47,6 +48,7 @@ def chat_to_model(chat: Chat) -> ChatModel:
     return ChatModel(
         id=str(chat.id),
         title=str(chat.title),
+        type=chat.type.value,
         avatar=chat.avatar,
         is_archived=chat.is_archived,
         archived_at=chat.archived_at,

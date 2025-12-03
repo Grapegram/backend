@@ -22,6 +22,12 @@ from ..events import (
     MemberRoleChanged,
 )
 from ..rules.chat import (
+    CannotAddMembersToDirectChat,
+    CannotChangeAvatarOfDirectChat,
+    CannotChangeRoleInDirectChat,
+    CannotChangeTitleOfDirectChat,
+    CannotCreateDirectChatWithSelf,
+    CannotRemoveMemberInDirectChat,
     CannotRemoveOwner,
     ChatMustHaveAtLeastOneMember,
     MemberMustNotAlreadyExist,
@@ -33,7 +39,7 @@ from ..rules.chat import (
     OnlyOwnerCanDeleteChat,
     UserIsNotMember,
 )
-from ..value_objects import ChatId, ChatTitle
+from ..value_objects import ChatId, ChatTitle, ChatType
 
 
 @dataclass
@@ -47,6 +53,7 @@ class Chat(AggregateRoot[ChatId]):
 
     id: ChatId
     title: ChatTitle
+    type: ChatType
     avatar: str | None = None
     is_archived: bool = False
     archived_at: datetime | None = None
@@ -54,7 +61,7 @@ class Chat(AggregateRoot[ChatId]):
 
     @classmethod
     @catch_unwrap
-    def create(
+    def create_group_chat(
         cls,
         title: str,
         created_by: str,
@@ -73,6 +80,7 @@ class Chat(AggregateRoot[ChatId]):
         chat = cls(
             id=chat_id,
             title=title_vo,
+            type=ChatType.GROUP,
             members=[owner],
         )
 
@@ -80,6 +88,7 @@ class Chat(AggregateRoot[ChatId]):
             ChatCreated(
                 chat_id=chat_id,
                 title=str(title_vo),
+                chat_type=ChatType.GROUP.value,
                 created_by=created_by,
                 created_at=now,
             )
@@ -98,10 +107,81 @@ class Chat(AggregateRoot[ChatId]):
 
         return Success(chat)
 
+    @classmethod
+    @catch_unwrap
+    def create_direct_chat(
+        cls,
+        user1_id: str,
+        user2_id: str,
+    ) -> Result[Self, VOValidationException]:
+        cls.check_rule(CannotCreateDirectChatWithSelf(user1_id, user2_id)).unwrap()
+
+        chat_id = ChatId.next_id()
+        now = utcnow()
+
+        # Sort user IDs to ensure consistent ordering
+        sorted_users = sorted([user1_id, user2_id])
+        title_vo = ChatTitle(f"Direct_{sorted_users[0]}_{sorted_users[1]}").unwrap()
+
+        # Create two equal members (no owner in direct chats)
+        member1 = Member.create(
+            user_id=user1_id,
+            chat_id=str(chat_id),
+            role=MemberRole.OWNER,
+        ).unwrap()
+
+        member2 = Member.create(
+            user_id=user2_id,
+            chat_id=str(chat_id),
+            role=MemberRole.OWNER,
+        ).unwrap()
+
+        chat = cls(
+            id=chat_id,
+            title=title_vo,
+            type=ChatType.DIRECT,
+            members=[member1, member2],
+        )
+
+        chat.register_event(
+            ChatCreated(
+                chat_id=chat.id,
+                title=str(chat.title),
+                chat_type=chat.type.value,
+                created_by=user1_id,
+                created_at=now,
+            )
+        )
+
+        chat.register_event(
+            MemberAdded(
+                chat_id=chat.id,
+                member_id=str(member1.id),
+                user_id=user1_id,
+                role=member1.role.value,
+                added_by=user1_id,
+                added_at=now,
+            )
+        )
+
+        chat.register_event(
+            MemberAdded(
+                chat_id=chat_id,
+                member_id=str(member2.id),
+                user_id=user2_id,
+                role=member2.role.value,
+                added_by=user1_id,
+                added_at=now,
+            )
+        )
+
+        return Success(chat)
+
     @catch_unwrap
     def change_title(
         self, new_title: str, changed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(CannotChangeTitleOfDirectChat(chat_type=self.type)).unwrap()
         self.check_rule(
             UserIsNotMember(members=self.members, user_id=changed_by)
         ).unwrap()
@@ -128,6 +208,7 @@ class Chat(AggregateRoot[ChatId]):
     def change_avatar(
         self, new_avatar: str | None, changed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(CannotChangeAvatarOfDirectChat(chat_type=self.type)).unwrap()
         self.check_rule(
             UserIsNotMember(members=self.members, user_id=changed_by)
         ).unwrap()
@@ -153,6 +234,7 @@ class Chat(AggregateRoot[ChatId]):
     def add_member(
         self, user_id: str, added_by: str, role: MemberRole = MemberRole.MEMBER
     ) -> Result[Member, VOValidationException]:
+        self.check_rule(CannotAddMembersToDirectChat(chat_type=self.type)).unwrap()
         self.check_rule(
             UserIsNotMember(members=self.members, user_id=added_by)
         ).unwrap()
@@ -191,6 +273,7 @@ class Chat(AggregateRoot[ChatId]):
     def remove_member(
         self, user_id: str, removed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(CannotRemoveMemberInDirectChat(chat_type=self.type)).unwrap()
         self.check_rule(
             UserIsNotMember(members=self.members, user_id=removed_by)
         ).unwrap()
@@ -225,6 +308,7 @@ class Chat(AggregateRoot[ChatId]):
     def change_member_role(
         self, user_id: str, new_role: MemberRole, changed_by: str
     ) -> Result[None, VOValidationException]:
+        self.check_rule(CannotChangeRoleInDirectChat(chat_type=self.type)).unwrap()
         self.check_rule(
             UserIsNotMember(members=self.members, user_id=changed_by)
         ).unwrap()

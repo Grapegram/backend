@@ -28,6 +28,7 @@ class ChatMemberDTO:
 class ChatDTO:
     id: str
     title: str
+    type: str
     avatar: str | None
     members: list[ChatMemberDTO]
 

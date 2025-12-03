@@ -72,6 +72,7 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
             ChatDTO(
                 id=str(model.id),
                 title=model.title,
+                type=model.type,
                 avatar=await self._resolve_avatar_url(model.avatar),
                 members=[
                     ChatMemberDTO(

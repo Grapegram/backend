@@ -1,5 +1,7 @@
 from typing import Protocol
 
+from returns.maybe import Maybe
+
 from seedwork.domain.repositories import Repository
 
 from .aggregates import Chat, Message
@@ -16,6 +18,10 @@ class ChatRepository(Repository[ChatId, Chat], Protocol):
     async def get_by_user_id(self, user_id: str) -> list[Chat]: ...
 
     async def get_by_member_user_id(self, user_id: str) -> list[Chat]: ...
+
+    async def get_direct_chat_between(
+        self, user1_id: str, user2_id: str
+    ) -> Maybe[Chat]: ...
 
 
 class MessageRepository(Repository[MessageId, Message], Protocol):
