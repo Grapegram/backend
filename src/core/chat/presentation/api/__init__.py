@@ -14,6 +14,7 @@ from src.core.chat.presentation.api.create_direct_chat import create_direct_chat
 from src.core.chat.presentation.api.delete_chat import delete_chat
 from src.core.chat.presentation.api.delete_message import delete_message
 from src.core.chat.presentation.api.edit_message import edit_message
+from src.core.chat.presentation.api.get_chat_by_id import get_chat_by_id
 from src.core.chat.presentation.api.get_chats_list import get_chats_list
 from src.core.chat.presentation.api.load_messages import load_messages
 from src.core.chat.presentation.api.send_message import send_message
@@ -26,6 +27,7 @@ routes = [
             create_chat,
             create_direct_chat,
             get_chats_list,
+            get_chat_by_id,
             change_chat_title,
             upload_chat_avatar,
             delete_chat_avatar,

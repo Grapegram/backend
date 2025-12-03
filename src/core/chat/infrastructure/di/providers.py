@@ -8,6 +8,7 @@ from src.core.chat.application.contracts.auth import AuthService
 from src.core.chat.application.contracts.repositories import ChatReadRepository
 from src.core.chat.application.handlers.events import ExposeMessageSentEvent
 from src.core.chat.application.handlers.queries import (
+    GetChatById,
     GetChatsList,
     LoadMessagesFromChat,
 )
@@ -70,6 +71,13 @@ class ChatProvider(Provider):
         chat_read_repo: ChatReadRepository,
     ) -> GetChatsList:
         return GetChatsList(chat_read_repo=chat_read_repo)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_get_chat_by_id_handler(
+        self,
+        chat_read_repo: ChatReadRepository,
+    ) -> GetChatById:
+        return GetChatById(chat_read_repo=chat_read_repo)
 
     @provide(scope=Scope.REQUEST)
     def provide_load_messages_from_chat_handler(

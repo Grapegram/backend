@@ -96,6 +96,34 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
             for model in models
         ]
 
+    async def get_chat_by_id(self, chat_id: str) -> ChatDTO | None:
+        stmt = (
+            select(ChatModel)
+            .where(ChatModel.id == chat_id)
+            .options(selectinload(ChatModel.members))
+        )
+        result = await self._session.execute(stmt)
+        model = result.scalar_one_or_none()
+
+        if not model:
+            return None
+
+        return ChatDTO(
+            id=str(model.id),
+            title=model.title,
+            type=model.type,
+            avatar=await self._resolve_avatar_url(model.avatar),
+            members=[
+                ChatMemberDTO(
+                    id=str(member.id),
+                    user_id=member.user_id,
+                    role=member.role,
+                    joined_at=member.joined_at,
+                )
+                for member in model.members
+            ],
+        )
+
     async def _resolve_avatar_url(self, avatar_key: str | None) -> str | None:
         if not avatar_key:
             return None
