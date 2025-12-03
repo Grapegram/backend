@@ -1,4 +1,5 @@
 from dishka import Provider, Scope, provide
+from litestar.channels import ChannelsPlugin
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +15,12 @@ from src.core.chat.application.handlers.queries import (
     GetChatById,
     GetChatsList,
     LoadMessagesFromChat,
+)
+from src.core.chat.application.handlers.user_status_handlers import (
+    HandleUserOffline,
+    HandleUserOnline,
+    HandleUserTypingStarted,
+    HandleUserTypingStopped,
 )
 from src.core.chat.application.services.chat import ChatService
 from src.core.chat.application.services.message import MessageService
@@ -109,6 +116,42 @@ class ChatProvider(Provider):
         notifier: Notifier,
     ) -> ExposeMessageSentEvent:
         return ExposeMessageSentEvent(notifier=notifier)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_online(
+        self,
+        user_status_service: UserStatusService,
+    ) -> HandleUserOnline:
+        return HandleUserOnline(user_status_service=user_status_service)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_offline(
+        self,
+        user_status_service: UserStatusService,
+    ) -> HandleUserOffline:
+        return HandleUserOffline(user_status_service=user_status_service)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_typing_started(
+        self,
+        user_status_service: UserStatusService,
+        channels: ChannelsPlugin,
+    ) -> HandleUserTypingStarted:
+        return HandleUserTypingStarted(
+            user_status_service=user_status_service,
+            channels=channels,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_typing_stopped(
+        self,
+        user_status_service: UserStatusService,
+        channels: ChannelsPlugin,
+    ) -> HandleUserTypingStopped:
+        return HandleUserTypingStopped(
+            user_status_service=user_status_service,
+            channels=channels,
+        )
 
     @provide(scope=Scope.REQUEST)
     def provide_auth_service(
