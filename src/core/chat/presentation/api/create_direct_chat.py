@@ -26,6 +26,7 @@ class CreateDirectChatRequest(Struct):
 
 class CreateDirectChatResponse(Struct):
     chat_id: str
+    is_new: bool
 
 
 @post(
@@ -50,14 +51,13 @@ async def create_direct_chat(
 
     match state.result:
         case Success(chat):
-            return CreateDirectChatResponse(
-                chat_id=str(chat.id),
-            )
+            return CreateDirectChatResponse(chat_id=str(chat.id), is_new=True)
+        case Failure(DirectChatFailedStatuses.CHAT_ALREADY_EXISTS):
+            return CreateDirectChatResponse(chat_id=str(state.chat.id), is_new=False)
         case Failure(error_status):
             error_messages = {
                 DirectChatFailedStatuses.INVALID_INPUT: "Invalid input data",
                 DirectChatFailedStatuses.CANNOT_CREATE_CHAT_WITH_SELF: "Cannot create a direct chat with yourself",
-                DirectChatFailedStatuses.CHAT_ALREADY_EXISTS: "Direct chat already exists",
             }
 
             raise HTTPException(

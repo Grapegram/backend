@@ -51,6 +51,7 @@ class CreateDirectChat(Story):
         )
         if existing != Nothing:
             state.result = Failure(FailedStatuses.CHAT_ALREADY_EXISTS)
+            state.chat = existing.unwrap()
             raise Interrupt
 
     async def create(self, state: State):
