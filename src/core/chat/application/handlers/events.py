@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from seedwork.application.handlers import Handler
 from seedwork.application.notifier import Notifier
 from seedwork.application.object_storage import ObjectStorage
-from src.core.chat.domain.events.chat_events import MemberAdded
+from src.core.chat.domain.events.chat_events import ChatDeleted, MemberAdded
 from src.core.chat.domain.events.message_events import MessageDeleted, MessageSent
 
 
@@ -57,9 +57,26 @@ class ExposeMemberAddedEvent(Handler):
 
     async def handle(self, event: MemberAdded) -> None:
         await self.notifier.notify(
-            f"chat-{event.chat_id}",
+            "chat-events",
             {
                 "event_type": "member_added",
+                "data": asdict(event),
+            },
+        )
+
+
+@dataclass
+class ExposeChatDeletedEvent(Handler):
+    handled = ChatDeleted
+
+    # Dependencies to be injected
+    notifier: Notifier
+
+    async def handle(self, event: ChatDeleted) -> None:
+        await self.notifier.notify(
+            "chat-events",
+            {
+                "event_type": "chat_deleted",
                 "data": asdict(event),
             },
         )

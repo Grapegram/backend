@@ -9,6 +9,7 @@ from src.core.chat.application.contracts.auth import AuthService
 from src.core.chat.application.contracts.repositories import ChatReadRepository
 from src.core.chat.application.contracts.user_status import UserStatusService
 from src.core.chat.application.handlers.events import (
+    ExposeChatDeletedEvent,
     ExposeMemberAddedEvent,
     ExposeMessageDeletedEvent,
     ExposeMessageSentEvent,
@@ -133,6 +134,13 @@ class ChatProvider(Provider):
         notifier: Notifier,
     ) -> ExposeMemberAddedEvent:
         return ExposeMemberAddedEvent(notifier=notifier)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_expose_chat_deleted_event_handler(
+        self,
+        notifier: Notifier,
+    ) -> ExposeChatDeletedEvent:
+        return ExposeChatDeletedEvent(notifier=notifier)
 
     @provide(scope=Scope.REQUEST)
     def provide_handle_user_online(

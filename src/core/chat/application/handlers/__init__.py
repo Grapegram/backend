@@ -1,4 +1,5 @@
 from .events import (
+    ExposeChatDeletedEvent,
     ExposeMemberAddedEvent,
     ExposeMessageDeletedEvent,
     ExposeMessageSentEvent,
@@ -15,6 +16,7 @@ handlers = [
     # events
     ExposeMessageSentEvent,
     ExposeMemberAddedEvent,
+    ExposeChatDeletedEvent,
     ExposeMessageDeletedEvent,
     # user status events
     HandleUserOnline,
