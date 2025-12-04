@@ -28,7 +28,11 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
     async def get_messages_by_chat_id(
         self, chat_id: str, from_message_id: str | None, limit: int
     ) -> list[MessageDTO]:
-        stmt = select(MessageModel).where(MessageModel.chat_id == chat_id)
+        stmt = (
+            select(MessageModel)
+            .where(MessageModel.chat_id == chat_id)
+            .where(MessageModel.is_deleted == False)  # noqa: E712
+        )
 
         if from_message_id:
             # Get the created_at timestamp of the reference message
@@ -70,6 +74,7 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
             select(func.count())
             .select_from(MessageModel)
             .where(MessageModel.chat_id == chat_id)
+            .where(MessageModel.is_deleted == False)  # noqa: E712
         )
         result = await self._session.execute(stmt)
         return result.scalar_one()
