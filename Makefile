@@ -13,6 +13,8 @@ build:
 	make -f scripts/docker_app_makefile build
 down:
 	make -f scripts/docker_app_makefile down
+restart:
+	make -f scripts/docker_app_makefile restart
 
 # Prod
 prod_up_fg:
@@ -23,6 +25,8 @@ prod_build:
 	make -f scripts/docker_app_makefile prod_build
 prod_down:
 	make -f scripts/docker_app_makefile prod_down
+prod_restart:
+	make -f scripts/docker_app_makefile prod_restart
 
 # Tools
 logs:
