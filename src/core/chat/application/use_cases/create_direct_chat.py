@@ -8,10 +8,8 @@ from returns.result import Failure, Result, Success
 from seedwork.application.event_bus import EventBus
 from seedwork.application.stories import I, Interrupt, Story
 from seedwork.application.stories import State as BaseState
-from seedwork.domain.events import filter_events
 
 from ...domain.aggregates import Chat
-from ...domain.events import ChatCreated
 from ...domain.repositories import ChatRepository
 
 
@@ -69,8 +67,7 @@ class CreateDirectChat(Story):
         state.result = Success(state.chat)
 
     async def publish_events(self, state: State):
-        for event in filter_events(state.chat.collect_events(), (ChatCreated,)):
-            await self.event_bus.publish(event)
+        await self.event_bus.publish(*state.chat.collect_events())
 
     # Dependencies to be injected
     chat_repo: ChatRepository
