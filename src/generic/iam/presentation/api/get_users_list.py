@@ -22,6 +22,7 @@ class UserResponse(Struct):
     avatar: str | None
     is_active: bool
     is_verified: bool
+    is_online: bool
 
 
 class GetUsersListResponse(Struct):
@@ -77,6 +78,7 @@ async def get_users_list(
                 avatar=user.avatar,
                 is_active=user.is_active,
                 is_verified=user.is_verified,
+                is_online=user.is_online,
             )
             for user in result.users
         ]

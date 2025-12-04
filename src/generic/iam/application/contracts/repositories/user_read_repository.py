@@ -14,6 +14,7 @@ class UserDTO:
     last_login_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    is_online: bool
 
 
 @dataclass(frozen=True)
