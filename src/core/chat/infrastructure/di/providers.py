@@ -1,4 +1,5 @@
 from dishka import Provider, Scope, provide
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
@@ -6,10 +7,22 @@ from seedwork.application.notifier import Notifier
 from seedwork.application.object_storage import ObjectStorage
 from src.core.chat.application.contracts.auth import AuthService
 from src.core.chat.application.contracts.repositories import ChatReadRepository
-from src.core.chat.application.handlers.events import ExposeMessageSentEvent
+from src.core.chat.application.contracts.user_status import UserStatusService
+from src.core.chat.application.handlers.events import (
+    ExposeMemberAddedEvent,
+    ExposeMessageDeletedEvent,
+    ExposeMessageSentEvent,
+)
 from src.core.chat.application.handlers.queries import (
+    GetChatById,
     GetChatsList,
     LoadMessagesFromChat,
+)
+from src.core.chat.application.handlers.user_status_handlers import (
+    HandleUserOffline,
+    HandleUserOnline,
+    HandleUserTypingStarted,
+    HandleUserTypingStopped,
 )
 from src.core.chat.application.services.chat import ChatService
 from src.core.chat.application.services.message import MessageService
@@ -38,10 +51,19 @@ from src.core.chat.infrastructure.repositories import (
     SQLAlchemyChatRepository,
     SQLAlchemyMessageRepository,
 )
+from src.core.chat.infrastructure.services.user_status import RedisUserStatusService
 from src.generic.iam.application.services.auth import AuthService as IAMAuthService
 
 
 class ChatProvider(Provider):
+    @provide(scope=Scope.APP)
+    def provide_user_status_service(self, redis: Redis) -> UserStatusService:
+        return RedisUserStatusService(
+            redis=redis,
+            online_ttl_seconds=30,
+            typing_ttl_seconds=5,
+        )
+
     @provide(scope=Scope.APP)
     def provide_chat_service(self, object_storage: ObjectStorage) -> ChatService:
         return ChatService(object_storage=object_storage)
@@ -60,9 +82,14 @@ class ChatProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     def provide_chat_read_repository(
-        self, session: AsyncSession, object_storage: ObjectStorage
+        self,
+        session: AsyncSession,
+        object_storage: ObjectStorage,
+        user_status_service: UserStatusService,
     ) -> ChatReadRepository:
-        return SQLAlchemyChatReadRepository(session, object_storage)
+        return SQLAlchemyChatReadRepository(
+            session, object_storage, user_status_service
+        )
 
     @provide(scope=Scope.REQUEST)
     def provide_get_chats_list_handler(
@@ -70,6 +97,13 @@ class ChatProvider(Provider):
         chat_read_repo: ChatReadRepository,
     ) -> GetChatsList:
         return GetChatsList(chat_read_repo=chat_read_repo)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_get_chat_by_id_handler(
+        self,
+        chat_read_repo: ChatReadRepository,
+    ) -> GetChatById:
+        return GetChatById(chat_read_repo=chat_read_repo)
 
     @provide(scope=Scope.REQUEST)
     def provide_load_messages_from_chat_handler(
@@ -82,8 +116,63 @@ class ChatProvider(Provider):
     def provide_expose_message_sent_event_handler(
         self,
         notifier: Notifier,
+        object_storage: ObjectStorage,
     ) -> ExposeMessageSentEvent:
-        return ExposeMessageSentEvent(notifier=notifier)
+        return ExposeMessageSentEvent(notifier=notifier, object_storage=object_storage)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_expose_message_deleted_event_handler(
+        self,
+        notifier: Notifier,
+    ) -> ExposeMessageDeletedEvent:
+        return ExposeMessageDeletedEvent(notifier=notifier)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_expose_member_added_event_handler(
+        self,
+        notifier: Notifier,
+    ) -> ExposeMemberAddedEvent:
+        return ExposeMemberAddedEvent(notifier=notifier)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_online(
+        self,
+        user_status_service: UserStatusService,
+        notifier: Notifier,
+    ) -> HandleUserOnline:
+        return HandleUserOnline(
+            user_status_service=user_status_service, notifier=notifier
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_offline(
+        self,
+        user_status_service: UserStatusService,
+        notifier: Notifier,
+    ) -> HandleUserOffline:
+        return HandleUserOffline(
+            user_status_service=user_status_service, notifier=notifier
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_typing_started(
+        self,
+        user_status_service: UserStatusService,
+        notifier: Notifier,
+    ) -> HandleUserTypingStarted:
+        return HandleUserTypingStarted(
+            user_status_service=user_status_service, notifier=notifier
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_handle_user_typing_stopped(
+        self,
+        user_status_service: UserStatusService,
+        notifier: Notifier,
+    ) -> HandleUserTypingStopped:
+        return HandleUserTypingStopped(
+            user_status_service=user_status_service, notifier=notifier
+        )
 
     @provide(scope=Scope.REQUEST)
     def provide_auth_service(

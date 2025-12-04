@@ -11,7 +11,11 @@ from src.generic.iam.infrastructure.models import UserModel
 
 
 class SQLAlchemyUserReadRepository(UserReadRepository):
-    def __init__(self, session: AsyncSession, object_storage: ObjectStorage):
+    def __init__(
+        self,
+        session: AsyncSession,
+        object_storage: ObjectStorage,
+    ):
         self._session = session
         self._object_storage = object_storage
 
@@ -56,6 +60,7 @@ class SQLAlchemyUserReadRepository(UserReadRepository):
                 last_login_at=model.last_login_at,
                 created_at=model.created_at,
                 updated_at=model.updated_at,
+                is_online=False,
             )
             for model in models
         ]
@@ -78,6 +83,7 @@ class SQLAlchemyUserReadRepository(UserReadRepository):
             last_login_at=model.last_login_at,
             created_at=model.created_at,
             updated_at=model.updated_at,
+            is_online=False,
         )
 
     async def _resolve_avatar_url(self, avatar_key: str | None) -> str | None:

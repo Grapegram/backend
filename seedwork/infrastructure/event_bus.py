@@ -31,8 +31,8 @@ class FastStreamEventBus(EventBus):
             register_handler(router, handler)
         self.publisher.include_router(router)
 
-    async def publish(self, *event: DomainEvent):
-        for event in event:
+    async def publish(self, *events: DomainEvent):
+        for event in events:
             await self.publisher.publish(event, event.__tag__)
 
     async def start(self):

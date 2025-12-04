@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from typing import Any
+from uuid import uuid4
 
 import anyio
 from dishka import AsyncContainer
@@ -11,34 +12,37 @@ from litestar.handlers import send_websocket_stream
 
 from seedwork.application.event_bus import EventBus
 from src.core.chat.application.contracts.auth import AuthService
-from src.core.chat.application.events.user_status_events import (
-    UserTypingStarted,
-    UserTypingStopped,
+from src.core.chat.application.events import (
+    UserOffline,
+    UserOnline,
 )
 
 
 @websocket(
-    "/ws/chat/{chat_id:str}",
+    "/ws/chat-events/{user_id:str}",
 )
 @inject_websocket
-async def live_chat(
+async def chat_events(
     socket: WebSocket,
     channels: ChannelsPlugin,
     container: FromDishka[AsyncContainer],
-    chat_id: str,
+    user_id: str,
 ) -> None:
     await socket.accept()
     should_stop = anyio.Event()
 
-    channel_name = f"chat-{chat_id}"
     is_authorized = False
-    user_id: str | None = None
+    device_id = str(uuid4())
+    chat_events = "chat-events"
+    user_events = f"user-{user_id}"
 
     async def handle_stream() -> AsyncGenerator[str]:
-        async with channels.start_subscription([channel_name]) as subscriber:
+        async with channels.start_subscription(
+            [chat_events, user_events]
+        ) as subscriber:
             while not should_stop.is_set():
                 async for event in subscriber.iter_events():
-                    if is_authorized and event:
+                    if is_authorized:
                         await socket.send_text(event)
                 yield
 
@@ -49,29 +53,24 @@ async def live_chat(
             async with container() as request_container:
                 event_bus = await request_container.get(EventBus)
 
-            if action == "authorize":
-                async with container() as request_container:
-                    auth_service = await request_container.get(AuthService)
+                if action == "authorize":
                     token = message.get("token")
                     auth_service = await request_container.get(AuthService)
                     auth_user_id = await auth_service.auth(token)
-                    if auth_user_id:
+                    if auth_user_id and auth_user_id == user_id:
                         is_authorized = True
-                        user_id = auth_user_id
                         await socket.send_json({"status": "authorized"})
+                        await event_bus.publish(
+                            UserOnline(user_id=user_id, device_id=device_id)
+                        )
                     else:
                         is_authorized = False
                         await socket.send_json({"status": "unauthorized"})
 
-            elif action == "start_typing" and is_authorized and user_id:
-                chat_id = message.get("chat_id")
-                if chat_id:
-                    await event_bus.publish(UserTypingStarted(user_id=user_id, chat_id=chat_id))
-
-            elif action == "stop_typing" and is_authorized and user_id:
-                chat_id = message.get("chat_id")
-                if chat_id:
-                    await event_bus.publish(UserTypingStopped(user_id=user_id, chat_id=chat_id))
+                elif action == "ping" and is_authorized and user_id:
+                    await event_bus.publish(
+                        UserOnline(user_id=user_id, device_id=device_id)
+                    )
 
     try:
         async with anyio.create_task_group() as tg:
@@ -82,3 +81,10 @@ async def live_chat(
     except Exception as e:
         should_stop.set()
         raise e
+    finally:
+        if user_id:
+            async with container() as request_container:
+                event_bus = await request_container.get(EventBus)
+                await event_bus.publish(
+                    UserOffline(user_id=user_id, device_id=device_id)
+                )

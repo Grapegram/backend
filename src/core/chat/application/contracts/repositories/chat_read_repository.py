@@ -21,6 +21,7 @@ class ChatMemberDTO:
     id: str
     user_id: str
     role: str
+    is_typing: bool
     joined_at: datetime
 
 
@@ -51,3 +52,5 @@ class ChatReadRepository(Protocol):
     async def count_messages_by_chat_id(self, chat_id: str) -> int: ...
 
     async def get_chats_by_member_user_id(self, user_id: str) -> list[ChatDTO]: ...
+
+    async def get_chat_by_id(self, chat_id: str) -> ChatDTO | None: ...

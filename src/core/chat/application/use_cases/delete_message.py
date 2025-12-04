@@ -8,11 +8,9 @@ from returns.result import Failure, Result, Success
 from seedwork.application.event_bus import EventBus
 from seedwork.application.stories import I, Interrupt, Story
 from seedwork.application.stories import State as BaseState
-from seedwork.domain.events import filter_events
 
 from ...domain.aggregates import Chat, Message
 from ...domain.entities import Member
-from ...domain.events import MessageDeleted
 from ...domain.repositories import ChatRepository, MessageRepository
 
 
@@ -31,7 +29,6 @@ class DeleteMessage(Story):
     """
 
     I.find_message
-    I.check_not_deleted
     I.find_chat
     I.get_deleter_member
     I.delete_message
@@ -56,21 +53,16 @@ class DeleteMessage(Story):
         if message == Nothing:
             state.result = Failure(FailedStatuses.MESSAGE_NOT_FOUND)
             raise Interrupt
-        state.message = message
-
-    def check_not_deleted(self, state: State):
-        if state.message.is_deleted:
-            state.result = Failure(FailedStatuses.ALREADY_DELETED)
-            raise Interrupt
+        state.message = message.unwrap()
 
     async def find_chat(self, state: State):
         chat = await self.chat_repo.get(str(state.message.chat_id))
         if chat == Nothing:
             state.result = Failure(FailedStatuses.CHAT_NOT_FOUND)
             raise Interrupt
-        state.chat = chat
+        state.chat = chat.unwrap()
 
-    def get_deleter_member(self, state: State):
+    async def get_deleter_member(self, state: State):
         deleter = state.chat.get_member(state.deleter_id)
         if not deleter:
             state.result = Failure(FailedStatuses.USER_NOT_MEMBER)
@@ -93,8 +85,7 @@ class DeleteMessage(Story):
         state.result = Success(None)
 
     async def publish_events(self, state: State):
-        for event in filter_events(state.message.collect_events(), (MessageDeleted,)):
-            await self.event_bus.publish(event)
+        await self.event_bus.publish(*state.message.collect_events())
 
     # Dependencies to be injected
     message_repo: MessageRepository

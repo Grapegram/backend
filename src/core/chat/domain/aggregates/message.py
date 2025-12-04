@@ -141,11 +141,12 @@ class Message(AggregateRoot[MessageId]):
                 edited_at=self.edited_at,
             )
         )
+        return Success(None)
 
     @catch_unwrap
     def delete(self, deleter: Member) -> Result[None, VOValidationException]:
         if self.is_deleted:
-            return  # Already deleted
+            return Success(None)
 
         self.check_rule(
             MessageMustBelongToChat(
@@ -170,7 +171,12 @@ class Message(AggregateRoot[MessageId]):
             )
         )
 
-    def add_reaction(self, user_id: str, reaction: str) -> None:
+        return Success(None)
+
+    @catch_unwrap
+    def add_reaction(
+        self, user_id: str, reaction: str
+    ) -> Result[None, VOValidationException]:
         if self.is_deleted:
             raise ValueError("Cannot add reaction to a deleted message")
 
@@ -189,10 +195,14 @@ class Message(AggregateRoot[MessageId]):
                     added_at=self.updated_at,
                 )
             )
+        return Success(None)
 
-    def remove_reaction(self, user_id: str, reaction: str) -> None:
+    @catch_unwrap
+    def remove_reaction(
+        self, user_id: str, reaction: str
+    ) -> Result[None, VOValidationException]:
         if reaction not in self.reactions:
-            return
+            return Success(None)
 
         if user_id in self.reactions[reaction]:
             self.reactions[reaction].remove(user_id)
@@ -210,8 +220,10 @@ class Message(AggregateRoot[MessageId]):
                     removed_at=self.updated_at,
                 )
             )
+        return Success(None)
 
-    def mark_as_read(self, user_id: str) -> None:
+    @catch_unwrap
+    def mark_as_read(self, user_id: str) -> Result[None, VOValidationException]:
         """
         Mark the message as read by a user.
 
@@ -229,6 +241,7 @@ class Message(AggregateRoot[MessageId]):
                     read_at=self.updated_at,
                 )
             )
+        return Success(None)
 
     def get_reaction_count(self, reaction: str) -> int:
         """Get the count of a specific reaction."""

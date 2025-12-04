@@ -19,6 +19,7 @@ class CurrentUserResponse(Struct):
     avatar: str | None
     is_active: bool
     is_verified: bool
+    is_online: bool
 
 
 @get(
@@ -45,6 +46,7 @@ async def get_current_user(
             avatar=result.user.avatar,
             is_active=result.user.is_active,
             is_verified=result.user.is_verified,
+            is_online=result.user.is_online,
         )
     except ValueError:
         raise HTTPException(

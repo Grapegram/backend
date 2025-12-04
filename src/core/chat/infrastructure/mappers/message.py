@@ -8,7 +8,7 @@ from src.core.chat.infrastructure.models import MessageModel
 @to_message.instance(MessageModel)
 def _to_message_from_model(model: MessageModel) -> Message:
     return Message(
-        id=MessageId(model.id),
+        id=MessageId(str(model.id)),
         chat_id=ChatId(str(model.chat_id)),
         sender_id=model.sender_id,
         text=MessageText.from_raw(model.text) if model.text else None,

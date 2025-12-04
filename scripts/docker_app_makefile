@@ -44,6 +44,9 @@ prod_build:
 prod_down:
 	${DC_PROD} down --remove-orphans
 
+prod_restart:
+	${DC_PROD} restart app
+
 
 up_fg:
 	${DC_DEV} up
@@ -56,6 +59,9 @@ build:
 
 down:
 	${DC_DEV} down --remove-orphans
+
+restart:
+	${DC_DEV} restart app
 
 
 logs:
