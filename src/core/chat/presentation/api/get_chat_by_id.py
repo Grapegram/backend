@@ -16,6 +16,7 @@ class ChatMemberResponse(Struct):
     id: str
     user_id: str
     role: str
+    is_typing: bool
 
 
 class ChatResponse(Struct):
@@ -61,6 +62,7 @@ async def get_chat_by_id(
                 id=member.id,
                 user_id=member.user_id,
                 role=member.role,
+                is_typing=member.is_typing,
             )
             for member in chat.members
         ],
