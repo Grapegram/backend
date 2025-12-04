@@ -94,7 +94,9 @@ class IAMProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     def provide_user_read_repository(
-        self, session: AsyncSession, object_storage: ObjectStorage
+        self,
+        session: AsyncSession,
+        object_storage: ObjectStorage,
     ) -> UserReadRepository:
         return SQLAlchemyUserReadRepository(session, object_storage)
 
