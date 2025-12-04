@@ -14,6 +14,7 @@ from src.core.chat.presentation.api.create_direct_chat import create_direct_chat
 from src.core.chat.presentation.api.delete_chat import delete_chat
 from src.core.chat.presentation.api.delete_message import delete_message
 from src.core.chat.presentation.api.edit_message import edit_message
+from src.core.chat.presentation.api.events_ws import chat_events
 from src.core.chat.presentation.api.get_chat_by_id import get_chat_by_id
 from src.core.chat.presentation.api.get_chats_list import get_chats_list
 from src.core.chat.presentation.api.load_messages import load_messages
@@ -44,6 +45,7 @@ routes = [
             # Reaction operations
             add_reaction,
             live_chat,
+            chat_events,
         ],
     ),
 ]
