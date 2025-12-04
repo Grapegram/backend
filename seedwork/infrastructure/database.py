@@ -9,8 +9,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
-from src.app.settings import get_settings
-
 
 class DatabaseSessionFactory:
     def __init__(self, engine: AsyncEngine):
@@ -45,21 +43,20 @@ class DatabaseSessionFactory:
 _session_factory: DatabaseSessionFactory | None = None
 
 
-def get_session_factory() -> DatabaseSessionFactory:
+def get_session_factory(url: str, debug: bool = False) -> DatabaseSessionFactory:
     global _session_factory
     if _session_factory is None:
-        settings = get_settings()
         engine = create_async_engine(
-            settings.postgres.url,
-            echo=settings.core.debug,
+            url,
+            echo=debug,
             pool_pre_ping=True,
         )
         _session_factory = DatabaseSessionFactory(engine)
     return _session_factory
 
 
-async def get_session() -> AsyncGenerator[AsyncSession]:
-    factory = get_session_factory()
+async def get_session(url: str, debug: bool = False) -> AsyncGenerator[AsyncSession]:
+    factory = get_session_factory(url, debug)
     async with factory.session() as session:
         yield session
 
