@@ -21,6 +21,7 @@ class ChatMemberDTO:
     id: str
     user_id: str
     role: str
+    is_typing: bool
     joined_at: datetime
 
 
