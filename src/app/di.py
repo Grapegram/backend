@@ -10,6 +10,7 @@ from dishka import (
 )
 from faststream.kafka import KafkaBroker
 from litestar.channels import ChannelsPlugin
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
@@ -29,6 +30,11 @@ class SettingsProvider(Provider):
     @provide(scope=Scope.APP)
     def provide_app_settings(self) -> Settings:
         return get_settings()
+
+    @provide(scope=Scope.APP)
+    async def provide_redis(self, settings: Settings) -> Redis:
+        redis = Redis.from_url(str(settings.redis.url), decode_responses=False)
+        return redis
 
     @provide(scope=Scope.APP)
     def provide_kafka_broker(self, settings: Settings) -> KafkaBroker:
@@ -63,8 +69,8 @@ class SettingsProvider(Provider):
             raise ValueError(f"Unsupported storage type: {settings.storage_type}")
 
     @provide(scope=Scope.REQUEST)
-    async def provide_session(self) -> AsyncGenerator[AsyncSession]:
-        async for session in get_session():
+    async def provide_session(self, settings: Settings) -> AsyncGenerator[AsyncSession]:
+        async for session in get_session(settings.postgres.url, False):
             yield session
 
     channels_plugin = from_context(provides=ChannelsPlugin, scope=Scope.APP)
