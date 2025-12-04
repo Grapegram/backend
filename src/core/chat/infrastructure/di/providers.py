@@ -1,16 +1,17 @@
 from dishka import Provider, Scope, provide
-from litestar.channels import ChannelsPlugin
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from seedwork.application.event_bus import EventBus
 from seedwork.application.notifier import Notifier
 from seedwork.application.object_storage import ObjectStorage
-from src.app.settings import Settings
 from src.core.chat.application.contracts.auth import AuthService
 from src.core.chat.application.contracts.repositories import ChatReadRepository
 from src.core.chat.application.contracts.user_status import UserStatusService
-from src.core.chat.application.handlers.events import ExposeMessageSentEvent
+from src.core.chat.application.handlers.events import (
+    ExposeMemberAddedEvent,
+    ExposeMessageSentEvent,
+)
 from src.core.chat.application.handlers.queries import (
     GetChatById,
     GetChatsList,
@@ -55,11 +56,6 @@ from src.generic.iam.application.services.auth import AuthService as IAMAuthServ
 
 class ChatProvider(Provider):
     @provide(scope=Scope.APP)
-    async def provide_redis(self, settings: Settings) -> Redis:
-        redis = Redis.from_url(str(settings.redis.url), decode_responses=False)
-        return redis
-
-    @provide(scope=Scope.APP)
     def provide_user_status_service(self, redis: Redis) -> UserStatusService:
         return RedisUserStatusService(
             redis=redis,
@@ -85,9 +81,14 @@ class ChatProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     def provide_chat_read_repository(
-        self, session: AsyncSession, object_storage: ObjectStorage
+        self,
+        session: AsyncSession,
+        object_storage: ObjectStorage,
+        user_status_service: UserStatusService,
     ) -> ChatReadRepository:
-        return SQLAlchemyChatReadRepository(session, object_storage)
+        return SQLAlchemyChatReadRepository(
+            session, object_storage, user_status_service
+        )
 
     @provide(scope=Scope.REQUEST)
     def provide_get_chats_list_handler(
@@ -114,43 +115,55 @@ class ChatProvider(Provider):
     def provide_expose_message_sent_event_handler(
         self,
         notifier: Notifier,
+        object_storage: ObjectStorage,
     ) -> ExposeMessageSentEvent:
-        return ExposeMessageSentEvent(notifier=notifier)
+        return ExposeMessageSentEvent(notifier=notifier, object_storage=object_storage)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_expose_member_added_event_handler(
+        self,
+        notifier: Notifier,
+    ) -> ExposeMemberAddedEvent:
+        return ExposeMemberAddedEvent(notifier=notifier)
 
     @provide(scope=Scope.REQUEST)
     def provide_handle_user_online(
         self,
         user_status_service: UserStatusService,
+        notifier: Notifier,
     ) -> HandleUserOnline:
-        return HandleUserOnline(user_status_service=user_status_service)
+        return HandleUserOnline(
+            user_status_service=user_status_service, notifier=notifier
+        )
 
     @provide(scope=Scope.REQUEST)
     def provide_handle_user_offline(
         self,
         user_status_service: UserStatusService,
+        notifier: Notifier,
     ) -> HandleUserOffline:
-        return HandleUserOffline(user_status_service=user_status_service)
+        return HandleUserOffline(
+            user_status_service=user_status_service, notifier=notifier
+        )
 
     @provide(scope=Scope.REQUEST)
     def provide_handle_user_typing_started(
         self,
         user_status_service: UserStatusService,
-        channels: ChannelsPlugin,
+        notifier: Notifier,
     ) -> HandleUserTypingStarted:
         return HandleUserTypingStarted(
-            user_status_service=user_status_service,
-            channels=channels,
+            user_status_service=user_status_service, notifier=notifier
         )
 
     @provide(scope=Scope.REQUEST)
     def provide_handle_user_typing_stopped(
         self,
         user_status_service: UserStatusService,
-        channels: ChannelsPlugin,
+        notifier: Notifier,
     ) -> HandleUserTypingStopped:
         return HandleUserTypingStopped(
-            user_status_service=user_status_service,
-            channels=channels,
+            user_status_service=user_status_service, notifier=notifier
         )
 
     @provide(scope=Scope.REQUEST)

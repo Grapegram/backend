@@ -9,14 +9,21 @@ from src.core.chat.application.contracts.repositories.chat_read_repository impor
     ChatMemberDTO,
     MessageDTO,
 )
+from src.core.chat.application.contracts.user_status import UserStatusService
 from src.core.chat.infrastructure.models import MessageModel
 from src.core.chat.infrastructure.models.chat import ChatModel, MemberModel
 
 
 class SQLAlchemyChatReadRepository(ChatReadRepository):
-    def __init__(self, session: AsyncSession, object_storage: ObjectStorage):
+    def __init__(
+        self,
+        session: AsyncSession,
+        object_storage: ObjectStorage,
+        user_status_service: UserStatusService,
+    ):
         self._session = session
         self._object_storage = object_storage
+        self._user_status_service = user_status_service
 
     async def get_messages_by_chat_id(
         self, chat_id: str, from_message_id: str | None, limit: int
@@ -77,24 +84,30 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
         result = await self._session.execute(stmt)
         models = result.scalars().all()
 
-        return [
-            ChatDTO(
-                id=str(model.id),
-                title=model.title,
-                type=model.type,
-                avatar=await self._resolve_avatar_url(model.avatar),
-                members=[
-                    ChatMemberDTO(
-                        id=str(member.id),
-                        user_id=member.user_id,
-                        role=member.role,
-                        joined_at=member.joined_at,
-                    )
-                    for member in model.members
-                ],
+        chats = []
+        for model in models:
+            typing_users = await self._user_status_service.get_typing_users(
+                str(model.id)
             )
-            for model in models
-        ]
+            chats.append(
+                ChatDTO(
+                    id=str(model.id),
+                    title=model.title,
+                    type=model.type,
+                    avatar=await self._resolve_avatar_url(model.avatar),
+                    members=[
+                        ChatMemberDTO(
+                            id=str(member.id),
+                            user_id=member.user_id,
+                            role=member.role,
+                            is_typing=member.user_id in typing_users,
+                            joined_at=member.joined_at,
+                        )
+                        for member in model.members
+                    ],
+                )
+            )
+        return chats
 
     async def get_chat_by_id(self, chat_id: str) -> ChatDTO | None:
         stmt = (
@@ -108,6 +121,8 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
         if not model:
             return None
 
+        typing_users = await self._user_status_service.get_typing_users(chat_id)
+
         return ChatDTO(
             id=str(model.id),
             title=model.title,
@@ -118,6 +133,7 @@ class SQLAlchemyChatReadRepository(ChatReadRepository):
                     id=str(member.id),
                     user_id=member.user_id,
                     role=member.role,
+                    is_typing=member.user_id in typing_users,
                     joined_at=member.joined_at,
                 )
                 for member in model.members
